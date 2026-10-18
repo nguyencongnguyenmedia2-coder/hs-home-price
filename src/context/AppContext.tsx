@@ -507,7 +507,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       code: generateQuotationCode(),
       createdAt: new Date().toISOString(),
       creatorId: currentUser.id,
-      creatorName: currentUser.name,
+      creatorName: 'Nhân viên',
       customerName: customerInfo.name.trim() || 'Khách hàng',
       customerPhone: customerInfo.phone?.trim() || '',
       customerAddress: customerInfo.address?.trim() || '',

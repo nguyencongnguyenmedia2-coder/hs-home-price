@@ -10,8 +10,139 @@ import {
   ArrowRight, 
   X,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  SunMedium,
+  Waves,
+  Boxes,
+  Pipette,
+  Anchor,
+  FlaskConical,
+  Paintbrush,
+  Flame,
+  Shield,
+  Sun,
+  ToggleRight,
+  Lightbulb,
+  ShieldCheck,
+  Truck,
+  Disc,
+  Plug,
+  Hammer,
+  Package,
+  Grid
 } from 'lucide-react';
+
+interface CategoryMeta {
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+}
+
+const CATEGORY_META_MAP: Record<string, CategoryMeta> = {
+  'Máy nước nóng NLMT': {
+    icon: SunMedium,
+    iconBg: 'bg-amber-50 border-amber-200/80',
+    iconColor: 'text-amber-600'
+  },
+  'Bồn nước Inox': {
+    icon: Waves,
+    iconBg: 'bg-sky-50 border-sky-200/80',
+    iconColor: 'text-sky-600'
+  },
+  'Bồn tự hoại': {
+    icon: Boxes,
+    iconBg: 'bg-teal-50 border-teal-200/80',
+    iconColor: 'text-teal-600'
+  },
+  'Van vòi đồng': {
+    icon: Pipette,
+    iconBg: 'bg-amber-50 border-amber-200/80',
+    iconColor: 'text-amber-700'
+  },
+  'Vít & Phụ kiện liên kết': {
+    icon: Anchor,
+    iconBg: 'bg-slate-100 border-slate-200/80',
+    iconColor: 'text-slate-700'
+  },
+  'Keo Silicone': {
+    icon: FlaskConical,
+    iconBg: 'bg-purple-50 border-purple-200/80',
+    iconColor: 'text-purple-600'
+  },
+  'Sơn kim loại': {
+    icon: Paintbrush,
+    iconBg: 'bg-rose-50 border-rose-200/80',
+    iconColor: 'text-rose-600'
+  },
+  'Sơn xịt': {
+    icon: Sparkles,
+    iconBg: 'bg-pink-50 border-pink-200/80',
+    iconColor: 'text-pink-600'
+  },
+  'Vật liệu hàn': {
+    icon: Flame,
+    iconBg: 'bg-red-50 border-red-200/80',
+    iconColor: 'text-red-600'
+  },
+  'Tấm cách nhiệt': {
+    icon: Shield,
+    iconBg: 'bg-emerald-50 border-emerald-200/80',
+    iconColor: 'text-emerald-600'
+  },
+  'Tấm lợp lấy sáng': {
+    icon: Sun,
+    iconBg: 'bg-yellow-50 border-yellow-200/80',
+    iconColor: 'text-yellow-600'
+  },
+  'Thiết bị đóng ngắt': {
+    icon: ToggleRight,
+    iconBg: 'bg-indigo-50 border-indigo-200/80',
+    iconColor: 'text-indigo-600'
+  },
+  'Thiết bị chiếu sáng LED': {
+    icon: Lightbulb,
+    iconBg: 'bg-amber-50 border-amber-200/80',
+    iconColor: 'text-amber-500'
+  },
+  'Tấm xi măng Cemboard': {
+    icon: Layers,
+    iconBg: 'bg-stone-100 border-stone-200/80',
+    iconColor: 'text-stone-700'
+  },
+  'Hóa chất chống thấm': {
+    icon: ShieldCheck,
+    iconBg: 'bg-blue-50 border-blue-200/80',
+    iconColor: 'text-blue-600'
+  },
+  'Xe rùa': {
+    icon: Truck,
+    iconBg: 'bg-orange-50 border-orange-200/80',
+    iconColor: 'text-orange-600'
+  },
+  'Đá cắt - Đá mài': {
+    icon: Disc,
+    iconBg: 'bg-zinc-100 border-zinc-200/80',
+    iconColor: 'text-zinc-700'
+  },
+  'Công tắc - Ổ cắm': {
+    icon: Plug,
+    iconBg: 'bg-cyan-50 border-cyan-200/80',
+    iconColor: 'text-cyan-600'
+  },
+  'Máy móc & Dụng cụ cầm tay': {
+    icon: Hammer,
+    iconBg: 'bg-red-50 border-red-200/80',
+    iconColor: 'text-[#E60012]'
+  }
+};
+
+const getCategoryMeta = (name: string): CategoryMeta => {
+  return CATEGORY_META_MAP[name] || {
+    icon: Package,
+    iconBg: 'bg-slate-100 border-slate-200/80',
+    iconColor: 'text-slate-600'
+  };
+};
 
 export const HomePage: React.FC = () => {
   const { 
@@ -201,24 +332,80 @@ export const HomePage: React.FC = () => {
           </button>
         </div>
 
-        {/* 2-column grid on mobile (320px - 430px), scaling on tablet/desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5">
-          {categories.map(cat => (
-            <button
-              key={cat.name}
-              type="button"
-              onClick={() => handleCategoryClick(cat.name)}
-              className="text-left p-2.5 sm:p-3 rounded-2xl bg-white border border-[#E5EAF1] hover:border-red-300 hover:bg-red-50/20 active:scale-[0.98] transition-all flex flex-col justify-between h-20 sm:h-22 shadow-2xs group"
-            >
-              <div className="font-bold text-xs sm:text-sm text-[#172033] line-clamp-2 leading-snug group-hover:text-[#E60012] transition-colors">
-                {cat.name}
+        {/* Grid: 2 cols on mobile, 3 cols sm, 4 cols md, 5 cols lg/xl (perfect 20-item symmetry) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+          {categories.map(cat => {
+            const meta = getCategoryMeta(cat.name);
+            const IconComp = meta.icon;
+
+            return (
+              <button
+                key={cat.name}
+                type="button"
+                onClick={() => handleCategoryClick(cat.name)}
+                className="group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-2xl bg-white border border-[#E5EAF1] hover:border-red-300 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-left overflow-hidden min-h-[118px] sm:min-h-[128px]"
+              >
+                {/* Top accent glow on hover */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#E60012] to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                {/* Top header row inside card: Icon badge + Count */}
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border shadow-2xs transition-all duration-200 group-hover:scale-110 group-hover:rotate-2 ${meta.iconBg}`}>
+                    <IconComp className={`w-4 h-4 sm:w-5 sm:h-5 ${meta.iconColor}`} />
+                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 bg-slate-100 group-hover:bg-red-50 group-hover:text-[#E60012] px-2 py-0.5 rounded-full transition-colors shrink-0">
+                    {cat.count} SP
+                  </span>
+                </div>
+
+                {/* Category title */}
+                <div className="mt-2.5">
+                  <div className="font-extrabold text-xs sm:text-[13px] text-[#172033] line-clamp-2 leading-snug group-hover:text-[#E60012] transition-colors">
+                    {cat.name}
+                  </div>
+                </div>
+
+                {/* Bottom micro-bar */}
+                <div className="mt-2 flex items-center justify-between pt-1.5 border-t border-slate-100 text-[10px] font-medium text-slate-400 group-hover:text-[#E60012] transition-colors">
+                  <span>Tra cứu giá</span>
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
+            );
+          })}
+
+          {/* 20th Card: Xem tất cả kho hàng 292 sản phẩm */}
+          <button
+            type="button"
+            onClick={() => {
+              setFilters(prev => ({ ...prev, category: 'ALL' }));
+              setActiveTab('catalog');
+            }}
+            className="group relative flex flex-col justify-between p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-[#172033] to-[#0f172a] hover:from-[#E60012] hover:to-[#B8000E] text-white shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-left overflow-hidden min-h-[118px] sm:min-h-[128px]"
+          >
+            <div className="flex items-center justify-between gap-2 w-full">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center border border-white/20 text-white shadow-2xs transition-all duration-200 group-hover:scale-110">
+                <Grid className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 group-hover:text-white" />
               </div>
-              <div className="text-[10px] sm:text-[11px] font-semibold text-[#64748B] flex items-center justify-between mt-1">
-                <span>{cat.count} SP</span>
-                <span className="text-slate-300 group-hover:text-[#E60012] group-hover:translate-x-0.5 transition-transform">→</span>
+              <span className="text-[10px] sm:text-[11px] font-bold text-white/90 bg-white/10 px-2 py-0.5 rounded-full shrink-0">
+                {products.length} SP
+              </span>
+            </div>
+
+            <div className="mt-2.5">
+              <div className="font-extrabold text-xs sm:text-[13px] text-white line-clamp-2 leading-snug">
+                Tất cả sản phẩm
               </div>
-            </button>
-          ))}
+              <div className="text-[10px] text-slate-300 group-hover:text-red-100 line-clamp-1 mt-0.5">
+                Kho tổng Hoa Sen Home
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between pt-1.5 border-t border-white/10 text-[10px] font-semibold text-slate-300 group-hover:text-white">
+              <span>Xem toàn bộ</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
         </div>
       </section>
 

@@ -80,3 +80,11 @@ export function generateQuotationCode(): string {
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `BG-${year}${month}${day}-${rand}`;
 }
+
+/**
+ * Định dạng tên/chức danh hiển thị trên file báo giá (ảnh PNG, in ấn, PDF)
+ * Luôn chỉ để "Nhân viên", không để "nhân viên thị trường" và mã nhân viên
+ */
+export function formatQuotationCreator(_creatorName?: string): string {
+  return 'Nhân viên';
+}

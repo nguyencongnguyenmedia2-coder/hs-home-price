@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import type { Quotation } from '../../types';
-import { formatVND, formatDate } from '../../utils/formatters';
+import { formatVND, formatDate, formatQuotationCreator } from '../../utils/formatters';
 import { printQuotation } from '../../utils/pdfExport';
 import html2canvas from 'html2canvas-pro';
 import { HOA_SEN_LOGO_BASE64 } from '../../assets/brandLogo';
@@ -429,7 +429,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                   </div>
                   <div>
                     <span style={{ color: '#64748B', display: 'inline-block', width: '105px' }}>Nhân viên lập:</span>
-                    <strong style={{ color: '#0F172A' }}>{quotation.creatorName}</strong>
+                    <strong style={{ color: '#0F172A' }}>{formatQuotationCreator(quotation.creatorName)}</strong>
                   </div>
                   <div>
                     <span style={{ color: '#64748B', display: 'inline-block', width: '105px' }}>Đơn vị tiền tệ:</span>
@@ -590,7 +590,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                     display: 'inline-block',
                     minWidth: '160px'
                   }}>
-                    {quotation.creatorName}
+                    {formatQuotationCreator(quotation.creatorName)}
                   </div>
                 </div>
               </div>

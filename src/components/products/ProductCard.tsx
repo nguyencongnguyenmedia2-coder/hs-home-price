@@ -75,6 +75,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div 
       onClick={handleCardClick}
+      itemScope
+      itemType="https://schema.org/Product"
       className="group relative bg-white rounded-2xl border border-[#E5EAF1] p-3 sm:p-4 shadow-2xs hover:shadow-sm hover:border-red-300 transition-all duration-150 cursor-pointer flex flex-col justify-between active:scale-[0.99] select-none"
     >
       {/* Top Badges: Brand, Category, Actions */}
@@ -115,13 +117,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Product Name (max 2 lines, clean Vietnamese font) */}
-        <h3 className="font-bold text-[#172033] text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-[#E60012] transition-colors">
+        <h3 itemProp="name" className="font-bold text-[#172033] text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-[#E60012] transition-colors">
           {product.product_name}
         </h3>
 
         {/* SKU & Unit */}
         <div className="flex items-center gap-2 mt-1 text-[11px] text-[#64748B]">
-          <span className="font-mono bg-slate-100 px-1 py-0.2 rounded text-[10px] text-[#172033] font-semibold">
+          <span itemProp="sku" className="font-mono bg-slate-100 px-1 py-0.2 rounded text-[10px] text-[#172033] font-semibold">
             {product.sku || 'N/A'}
           </span>
           <span className="text-slate-300">•</span>
@@ -147,7 +149,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Price & Action Footer */}
-      <div className="mt-3 pt-2.5 border-t border-[#E5EAF1] flex items-end justify-between gap-2">
+      <div 
+        itemProp="offers" 
+        itemScope 
+        itemType="https://schema.org/Offer" 
+        className="mt-3 pt-2.5 border-t border-[#E5EAF1] flex items-end justify-between gap-2"
+      >
+        <meta itemProp="priceCurrency" content="VND" />
+        <meta itemProp="price" content={String(displayPrice || 0)} />
+        <meta itemProp="availability" content="https://schema.org/InStock" />
         <div className="min-w-0">
           <div className="text-[10px] font-semibold text-[#64748B] flex items-center gap-1 truncate">
             <span>{priceDetail?.label || 'Giá'}</span>

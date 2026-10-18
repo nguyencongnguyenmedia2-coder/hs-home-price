@@ -111,6 +111,21 @@ export const ProductCatalog: React.FC = () => {
   return (
     <div className="space-y-3 sm:space-y-4 max-w-6xl mx-auto">
       
+      {/* Page Heading for SEO */}
+      <div className="flex items-center justify-between pt-1">
+        <div>
+          <h1 className="text-base sm:text-xl font-extrabold text-[#172033] tracking-tight">
+            Danh Mục Sản Phẩm & Bảng Giá Hoa Sen Home
+          </h1>
+          <p className="text-[11px] sm:text-xs text-[#64748B]">
+            Tra cứu hơn 290+ quy cách sản phẩm vật liệu xây dựng chính hãng
+          </p>
+        </div>
+        <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E5EAF1] text-xs font-semibold text-[#172033] shadow-2xs">
+          <span>{filteredProducts.length} sản phẩm</span>
+        </div>
+      </div>
+
       {/* Sticky Filter Header Container */}
       <div className="sticky top-14 sm:top-16 z-30 bg-[#F5F7FA]/95 backdrop-blur-md pt-1 pb-2 space-y-2.5">
         

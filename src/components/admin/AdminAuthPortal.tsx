@@ -6,24 +6,18 @@ import {
   Mail, 
   Key, 
   LogIn, 
-  UserPlus, 
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
   ShieldCheck, 
-  ArrowLeft,
-  Info
+  ArrowLeft
 } from 'lucide-react';
 
 export const AdminAuthPortal: React.FC = () => {
   const { switchRole, setActiveTab } = useApp();
 
-  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [adminFullName, setAdminFullName] = useState('');
-  const [adminBranch, setAdminBranch] = useState('Trụ sở Tập đoàn Hoa Sen');
-
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -42,7 +36,7 @@ export const AdminAuthPortal: React.FC = () => {
       if (error) {
         let msg = error.message;
         if (error.message.includes('Invalid login credentials')) {
-          msg = 'Email hoặc mật khẩu không chính xác. Nếu chưa có tài khoản, vui lòng bấm tab "Tạo tài khoản mới".';
+          msg = 'Email hoặc mật khẩu quản trị viên không chính xác. Vui lòng kiểm tra lại.';
         }
         setAuthMessage({ type: 'error', text: msg });
       } else if (data.user) {
@@ -51,54 +45,6 @@ export const AdminAuthPortal: React.FC = () => {
       }
     } catch (err: any) {
       setAuthMessage({ type: 'error', text: err.message || 'Lỗi kết nối khi đăng nhập' });
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  // Handle Create Admin Account via Supabase Auth
-  const handleAdminSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminPassword.length < 6) {
-      setAuthMessage({ type: 'error', text: 'Mật khẩu phải có tối thiểu 6 ký tự.' });
-      return;
-    }
-
-    setAuthLoading(true);
-    setAuthMessage(null);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: adminEmail.trim(),
-        password: adminPassword,
-        options: {
-          data: {
-            full_name: adminFullName.trim() || 'Admin Hoa Sen',
-            branch: adminBranch.trim(),
-            role: 'admin'
-          }
-        }
-      });
-
-      if (error) {
-        let msg = error.message;
-        if (error.message.includes('User already registered')) {
-          msg = 'Email này đã tồn tại tài khoản. Vui lòng chuyển sang tab Đăng nhập.';
-        }
-        setAuthMessage({ type: 'error', text: msg });
-      } else if (data.user) {
-        if (data.session) {
-          setAuthMessage({ type: 'success', text: 'Tạo tài khoản Admin thành công và đã tự động đăng nhập!' });
-          switchRole('admin');
-        } else {
-          setAuthMessage({ 
-            type: 'success', 
-            text: 'Đã tạo tài khoản Admin trên Supabase! Bạn có thể chuyển sang tab Đăng nhập.' 
-          });
-        }
-      }
-    } catch (err: any) {
-      setAuthMessage({ type: 'error', text: err.message || 'Lỗi kết nối khi tạo tài khoản' });
     } finally {
       setAuthLoading(false);
     }
@@ -122,37 +68,9 @@ export const AdminAuthPortal: React.FC = () => {
               Đăng Nhập Quản Trị Viên
             </h1>
             <p className="text-xs text-[#64748B] mt-0.5">
-              Xác thực bằng tài khoản Supabase Auth để quản lý bảng giá và dữ liệu Excel.
+              Hệ thống đã khóa đăng ký mới. Chỉ tài khoản Quản trị viên đã cấp quyền mới có thể đăng nhập.
             </p>
           </div>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-2xl text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthTab('signin');
-              setAuthMessage(null);
-            }}
-            className={`flex-1 py-2 rounded-xl transition-all ${
-              authTab === 'signin' ? 'bg-white text-[#E60012] shadow-2xs font-extrabold' : 'text-[#64748B]'
-            }`}
-          >
-            Đăng nhập
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setAuthTab('signup');
-              setAuthMessage(null);
-            }}
-            className={`flex-1 py-2 rounded-xl transition-all ${
-              authTab === 'signup' ? 'bg-white text-[#E60012] shadow-2xs font-extrabold' : 'text-[#64748B]'
-            }`}
-          >
-            Tạo tài khoản mới
-          </button>
         </div>
 
         {/* Feedback Alert */}
@@ -171,141 +89,55 @@ export const AdminAuthPortal: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 1: Đăng nhập */}
-        {authTab === 'signin' ? (
-          <form onSubmit={handleAdminSignIn} className="space-y-3.5">
-            <div>
-              <label className="text-xs font-bold text-[#172033] block mb-1">
-                Email Quản trị viên
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  value={adminEmail}
-                  onChange={e => setAdminEmail(e.target.value)}
-                  placeholder="admin@hoasenhome.vn"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs sm:text-sm text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white transition-colors"
-                />
-              </div>
+        {/* Form Đăng nhập Admin duy nhất */}
+        <form onSubmit={handleAdminSignIn} className="space-y-3.5">
+          <div>
+            <label className="text-xs font-bold text-[#172033] block mb-1">
+              Email Quản trị viên
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="email"
+                required
+                value={adminEmail}
+                onChange={e => setAdminEmail(e.target.value)}
+                placeholder="admin@hoasenhome.vn"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs sm:text-sm text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white transition-colors"
+              />
             </div>
+          </div>
 
-            <div>
-              <label className="text-xs font-bold text-[#172033] block mb-1">
-                Mật khẩu
-              </label>
-              <div className="relative">
-                <Key className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  required
-                  value={adminPassword}
-                  onChange={e => setAdminPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs sm:text-sm text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white transition-colors"
-                />
-              </div>
+          <div>
+            <label className="text-xs font-bold text-[#172033] block mb-1">
+              Mật khẩu
+            </label>
+            <div className="relative">
+              <Key className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="password"
+                required
+                value={adminPassword}
+                onChange={e => setAdminPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs sm:text-sm text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white transition-colors"
+              />
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full min-h-[44px] py-2.5 rounded-xl bg-[#E60012] hover:bg-[#C90010] active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 transition-all select-none"
-            >
-              {authLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <LogIn className="w-4 h-4" />
-              )}
-              <span>Đăng nhập Quản trị viên</span>
-            </button>
-          </form>
-        ) : (
-          /* Tab 2: Tạo tài khoản Admin mới */
-          <form onSubmit={handleAdminSignUp} className="space-y-3">
-            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-[#64748B] flex items-start gap-2">
-              <Info className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
-              <span>Tài khoản sẽ được tạo trực tiếp trên <strong>Supabase Auth</strong>.</span>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-[#172033] block mb-1">
-                Email Admin <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  value={adminEmail}
-                  onChange={e => setAdminEmail(e.target.value)}
-                  placeholder="admin.hoasen@gmail.com"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs sm:text-sm text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-[#172033] block mb-1">
-                Mật khẩu (tối thiểu 6 ký tự) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Key className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={adminPassword}
-                  onChange={e => setAdminPassword(e.target.value)}
-                  placeholder="Tối thiểu 6 ký tự"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs sm:text-sm text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs font-bold text-[#172033] block mb-1">
-                  Họ và tên
-                </label>
-                <input
-                  type="text"
-                  value={adminFullName}
-                  onChange={e => setAdminFullName(e.target.value)}
-                  placeholder="Trần Quản Trị"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-[#172033] block mb-1">
-                  Chi nhánh
-                </label>
-                <input
-                  type="text"
-                  value={adminBranch}
-                  onChange={e => setAdminBranch(e.target.value)}
-                  placeholder="Trụ sở"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs text-[#172033] focus:outline-none focus:border-[#E60012] focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full min-h-[44px] mt-2 py-2.5 rounded-xl bg-[#E60012] hover:bg-[#C90010] active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 transition-all select-none"
-            >
-              {authLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <UserPlus className="w-4 h-4" />
-              )}
-              <span>Tạo tài khoản Admin trên Supabase</span>
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={authLoading}
+            className="w-full min-h-[44px] mt-1 py-2.5 rounded-xl bg-[#E60012] hover:bg-[#C90010] active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 transition-all select-none"
+          >
+            {authLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <LogIn className="w-4 h-4" />
+            )}
+            <span>Đăng nhập Quản trị viên</span>
+          </button>
+        </form>
 
         {/* Back to Staff App */}
         <div className="pt-2 text-center">

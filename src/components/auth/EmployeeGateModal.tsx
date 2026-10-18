@@ -85,17 +85,10 @@ export const EmployeeGateModal: React.FC = () => {
                 value={code}
                 onChange={handleChange}
                 maxLength={12}
-                placeholder="HSHxxxxxx (VD: HSH003687)"
+                placeholder="Nhập mã nhân viên..."
                 autoFocus
-                className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-base font-mono font-bold text-[#172033] tracking-wide placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:border-[#E60012] focus:bg-white focus:ring-4 focus:ring-red-100 transition-all uppercase"
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-base font-mono font-bold text-[#172033] tracking-wider placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:border-[#E60012] focus:bg-white focus:ring-4 focus:ring-red-100 transition-all uppercase"
               />
-              {isFormatValid && (
-                <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
-              )}
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
-              <span>Định dạng: <strong>HSHxxxxxx</strong> (x là số)</span>
-              <span>Ví dụ: <strong>HSH003687</strong></span>
             </div>
           </div>
 

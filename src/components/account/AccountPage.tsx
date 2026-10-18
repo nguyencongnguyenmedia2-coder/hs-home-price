@@ -92,7 +92,7 @@ export const AccountPage: React.FC = () => {
             <div className="mt-2.5 p-3 bg-emerald-50/80 border border-emerald-200/70 rounded-2xl text-xs text-emerald-900 flex items-start gap-2 text-left">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <strong>Chế độ nhân viên Hoa Sen Home:</strong> Bạn đã xác thực mã nhân viên hợp lệ ({employeeCode || 'HSHxxxxxx'}). Bạn được tự do tra cứu toàn bộ 292 sản phẩm, xem mọi mức giá bán (sỉ, thầu thợ, lẻ, niêm yết), tạo báo giá và lưu ảnh gửi Zalo cho khách hàng.
+                <strong>Chế độ nhân viên Hoa Sen Home:</strong> Bạn đã xác thực mã nhân viên hợp lệ ({employeeCode}). Bạn được tự do tra cứu toàn bộ 292 sản phẩm, xem mọi mức giá bán (sỉ, thầu thợ, lẻ, niêm yết), tạo báo giá và lưu ảnh gửi Zalo cho khách hàng.
               </div>
             </div>
           ) : (

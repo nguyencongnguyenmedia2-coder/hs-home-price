@@ -135,7 +135,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!validateEmployeeCode(clean)) {
       return { 
         success: false, 
-        message: 'Mã nhân viên không hợp lệ! Vui lòng nhập đúng định dạng HSHxxxxxx (Ví dụ: HSH003687).' 
+        message: 'Mã nhân viên không hợp lệ hoặc không có quyền truy cập hệ thống.' 
       };
     }
 

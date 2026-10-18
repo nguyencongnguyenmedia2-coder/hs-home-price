@@ -78,7 +78,7 @@ export const QuotationBuilder: React.FC = () => {
     }
     const tempQuote: Quotation = {
       id: 'TEMP-PREVIEW',
-      code: 'BG-XEM-TRUOC',
+      code: '',
       createdAt: new Date().toISOString(),
       creatorId: currentUser.id,
       creatorName: 'Nhân viên',
@@ -104,7 +104,7 @@ export const QuotationBuilder: React.FC = () => {
     }
     const tempQuote: Quotation = {
       id: 'TEMP-PREVIEW',
-      code: 'BG-XEM-TRUOC',
+      code: '',
       createdAt: new Date().toISOString(),
       creatorId: currentUser.id,
       creatorName: 'Nhân viên',

@@ -53,14 +53,14 @@ export function printQuotation(quote: Quotation): void {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Báo giá ${quote.code} - Hoa Sen Home</title>
+      <title>Báo giá ${quote.code && quote.code !== 'BG-XEM-TRUOC' ? `${quote.code} - ` : ''}Hoa Sen Home</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
       <style>
         @page {
           size: A4 portrait;
-          margin: 10mm 12mm 12mm 12mm;
+          margin: 0 !important;
         }
 
         * {
@@ -600,17 +600,21 @@ export function printQuotation(quote: Quotation): void {
           break-inside: avoid;
         }
 
-        /* Hide Screen UI on Print */
+        /* Hide Screen UI and optimize layout on Print */
         @media print {
           .screen-toolbar {
             display: none !important;
           }
-          .page-container {
+          html, body {
+            margin: 0 !important;
             padding: 0 !important;
-            max-width: 100% !important;
-          }
-          body {
             background-color: #ffffff !important;
+          }
+          .page-container {
+            padding: 10mm 12mm 12mm 12mm !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
           }
         }
       </style>
@@ -619,7 +623,7 @@ export function printQuotation(quote: Quotation): void {
       <!-- Top floating toolbar for browser popup -->
       <div class="screen-toolbar">
         <div class="toolbar-left">
-          <span>HOA SEN HOME • BÁO GIÁ SẢN PHẨM (${quote.code})</span>
+          <span>HOA SEN HOME • BÁO GIÁ SẢN PHẨM${quote.code && quote.code !== 'BG-XEM-TRUOC' ? ` (${escapeHtml(quote.code)})` : ''}</span>
         </div>
         <div class="toolbar-right">
           <button class="btn btn-primary" onclick="window.print()">
@@ -638,11 +642,11 @@ export function printQuotation(quote: Quotation): void {
             <img src="${HOA_SEN_LOGO_BASE64}" class="brand-logo" alt="Hoa Sen Home" />
             <div>
               <div class="brand-name">HOA SEN HOME</div>
-              <div class="brand-sub">Hệ thống Phân phối Vật liệu Xây dựng & Nội thất Hoa Sen</div>
+              <div class="brand-sub">Hệ thống Siêu thị Vật liệu xây dựng và Nội thất Hoa Sen Home</div>
             </div>
           </div>
           <div class="meta-right">
-            <div class="quote-code">${escapeHtml(quote.code)}</div>
+            ${quote.code && quote.code !== 'BG-XEM-TRUOC' ? `<div class="quote-code">${escapeHtml(quote.code)}</div>` : ''}
             <div class="quote-date">Ngày lập: <strong>${formatDate(quote.createdAt)}</strong></div>
             <div>${statusBadge}</div>
           </div>
@@ -719,7 +723,7 @@ export function printQuotation(quote: Quotation): void {
                 : ''
             }
             <ul class="terms-list">
-              <li>Đơn giá áp dụng theo chính sách hiện hành của Tập đoàn Hoa Sen Home.</li>
+              <li>Đơn giá áp dụng theo chính sách hiện hành của Hệ thống Siêu thị Vật liệu xây dựng và Nội thất Hoa Sen Home.</li>
               <li>Hiệu lực báo giá: 15 ngày kể từ ngày ban hành.</li>
               <li>Quý khách vui lòng kiểm tra quy cách, chủng loại và số lượng khi nhận hàng.</li>
             </ul>
@@ -755,7 +759,7 @@ export function printQuotation(quote: Quotation): void {
             <div class="sign-name">${escapeHtml(quote.customerName || 'Khách hàng')}</div>
           </div>
           <div class="sign-col">
-            <div class="sign-role">ĐẠI DIỆN HOA SEN HOME</div>
+            <div class="sign-role">ĐẠI DIỆN CỬA HÀNG</div>
             <div class="sign-hint">(Nhân viên lập báo giá)</div>
             <div class="sign-spacing"></div>
             <div class="sign-name staff">${escapeHtml(formatQuotationCreator(quote.creatorName))}</div>

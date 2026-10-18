@@ -215,8 +215,10 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             />
             <div className="min-w-0">
               <div className="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5 truncate">
-                <span>Xem Trước:</span>
-                <span className="text-red-600 font-mono tracking-tight">{quotation.code}</span>
+                <span>Xem Trước Báo Giá</span>
+                {quotation.code && quotation.code !== 'BG-XEM-TRUOC' && (
+                  <span className="text-red-600 font-mono tracking-tight">{quotation.code}</span>
+                )}
               </div>
               <div className="text-[10px] sm:text-[11px] text-slate-500 hidden sm:block truncate">
                 Khổ chuẩn A4 • Sẵn sàng gửi Zalo cho khách hàng hoặc in ấn trực tiếp
@@ -353,15 +355,17 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                       HOA SEN HOME
                     </div>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '3px' }}>
-                      Hệ thống Phân phối Vật liệu Xây dựng & Nội thất Hoa Sen
+                      Hệ thống Siêu thị Vật liệu xây dựng và Nội thất Hoa Sen Home
                     </div>
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#E60012', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
-                    {quotation.code}
-                  </div>
+                  {quotation.code && quotation.code !== 'BG-XEM-TRUOC' ? (
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#E60012', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                      {quotation.code}
+                    </div>
+                  ) : null}
                   <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px' }}>
                     Ngày lập: <strong style={{ color: '#1E293B' }}>{formatDate(quotation.createdAt)}</strong>
                   </div>
@@ -516,7 +520,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                     </div>
                   ) : null}
                   <ul style={{ margin: 0, paddingLeft: '16px' }}>
-                    <li style={{ marginBottom: '3px' }}>Đơn giá áp dụng theo chính sách hiện hành của Tập đoàn Hoa Sen Home.</li>
+                    <li style={{ marginBottom: '3px' }}>Đơn giá áp dụng theo chính sách hiện hành của Hệ thống Siêu thị Vật liệu xây dựng và Nội thất Hoa Sen Home.</li>
                     <li style={{ marginBottom: '3px' }}>Hiệu lực báo giá: 15 ngày kể từ ngày ban hành.</li>
                     <li>Quý khách vui lòng kiểm tra quy cách, chủng loại và số lượng khi nhận hàng.</li>
                   </ul>
@@ -578,7 +582,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                 </div>
 
                 <div style={{ padding: '0 16px' }}>
-                  <div style={{ fontWeight: 800, textTransform: 'uppercase', color: '#1E293B', fontSize: '13px' }}>ĐẠI DIỆN HOA SEN HOME</div>
+                  <div style={{ fontWeight: 800, textTransform: 'uppercase', color: '#1E293B', fontSize: '13px' }}>ĐẠI DIỆN CỬA HÀNG</div>
                   <div style={{ fontSize: '10.5px', color: '#64748B', marginTop: '2px' }}>(Nhân viên lập báo giá)</div>
                   <div style={{ height: '55px' }} />
                   <div style={{ 

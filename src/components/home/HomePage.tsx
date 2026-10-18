@@ -259,6 +259,36 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Quick Support Banner for Field Staff */}
+      <section className="bg-gradient-to-r from-red-50/70 via-white to-blue-50/70 rounded-2xl border border-slate-200/80 p-3.5 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+            AD
+          </div>
+          <div className="text-center sm:text-left">
+            <span className="font-extrabold text-[#172033] block">Cần hỗ trợ tra cứu giá hoặc phản hồi hệ thống?</span>
+            <span className="text-[11px] text-[#64748B]">Admin thiết kế website: <strong>Nguyễn Công Nguyên</strong></span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          <a
+            href="https://zalo.me/0934811307"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-colors"
+          >
+            <span>💬 Zalo: 0934 811 307</span>
+          </a>
+          <a
+            href="tel:0981008274"
+            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-colors"
+          >
+            <span>📞 ĐT: 0981 008 274</span>
+          </a>
+        </div>
+      </section>
+
     </div>
   );
 };

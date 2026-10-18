@@ -154,8 +154,17 @@ export const AdminAuthPortal: React.FC = () => {
         </div>
 
         {/* Footer Branding */}
-        <div className="text-center text-[10px] text-[#64748B] pt-2 border-t border-slate-100">
+        <div className="text-center text-[10px] text-[#64748B] pt-2 border-t border-slate-100 space-y-1">
           <div>Bản quyền © 2026 NGUYỄN CÔNG NGUYÊN PHÁT TRIỂN WEBSITE • Dành cho nhân viên thị trường</div>
+          <div className="flex items-center justify-center gap-3 text-[11px] pt-1">
+            <a href="https://zalo.me/0934811307" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 hover:underline">
+              Zalo: 0934 811 307
+            </a>
+            <span className="text-slate-300">•</span>
+            <a href="tel:0981008274" className="font-bold text-emerald-600 hover:underline">
+              ĐT: 0981 008 274
+            </a>
+          </div>
         </div>
 
       </div>

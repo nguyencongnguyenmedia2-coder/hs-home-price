@@ -13,7 +13,10 @@ import {
   FileCheck2,
   Calendar,
   LogOut,
-  ExternalLink
+  ExternalLink,
+  Phone,
+  MessageCircle,
+  Headphones
 } from 'lucide-react';
 
 export const AccountPage: React.FC = () => {
@@ -191,10 +194,89 @@ export const AccountPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Support & Admin Contact Card */}
+      <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl border border-[#E5EAF1] p-5 sm:p-6 shadow-2xs space-y-3.5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#172033] flex items-center gap-2">
+            <Headphones className="w-4 h-4 text-[#E60012]" />
+            <span>Hỗ Trợ Kỹ Thuật & Quản Trị Website</span>
+          </h3>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#E60012] border border-red-200">
+            Hỗ trợ 24/7
+          </span>
+        </div>
+
+        <p className="text-xs text-[#64748B] leading-relaxed">
+          Nhân viên thị trường gặp khó khăn khi tra cứu giá, xuất báo giá hoặc cần hỗ trợ kỹ thuật website, vui lòng liên hệ trực tiếp Admin:
+        </p>
+
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-500 text-white flex items-center justify-center font-black text-sm shadow-sm shrink-0">
+              AD
+            </div>
+            <div className="min-w-0">
+              <div className="font-extrabold text-sm text-[#172033] flex items-center gap-1.5 flex-wrap">
+                <span>Nguyễn Công Nguyên</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 bg-slate-100 text-slate-700 rounded">Admin Thiết Kế Website</span>
+              </div>
+              <div className="text-[11px] text-[#64748B]">
+                Hệ thống Tra cứu Bảng giá & Lập báo giá Hoa Sen Home
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            {/* Zalo Contact */}
+            <a 
+              href="https://zalo.me/0934811307" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-between p-3 rounded-xl bg-blue-50/80 hover:bg-blue-100 border border-blue-200 text-blue-900 transition-all active:scale-[0.98] group"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  <MessageCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-blue-700 uppercase">Chat Zalo hỗ trợ</div>
+                  <div className="font-extrabold text-sm text-blue-950 font-mono">0934 811 307</div>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-blue-600 group-hover:translate-x-0.5 transition-transform">
+                Nhắn tin →
+              </span>
+            </a>
+
+            {/* Phone Hotline Contact */}
+            <a 
+              href="tel:0981008274" 
+              className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 transition-all active:scale-[0.98] group"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-emerald-700 uppercase">Gọi điện thoại trực tiếp</div>
+                  <div className="font-extrabold text-sm text-emerald-950 font-mono">0981 008 274</div>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-emerald-600 group-hover:translate-x-0.5 transition-transform">
+                Gọi ngay →
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Footer Branding */}
       <div className="text-center text-[11px] text-[#64748B] space-y-1 pt-2">
         <div>HỆ THỐNG TRA CỨU SẢN PHẨM & BẢNG GIÁ HOA SEN HOME</div>
         <div>Bản quyền © 2026 NGUYỄN CÔNG NGUYÊN PHÁT TRIỂN WEBSITE • Dành cho nhân viên thị trường</div>
+        <div className="text-[10px] text-slate-400">
+          Zalo: 0934 811 307 • Hotline: 0981 008 274
+        </div>
       </div>
 
     </div>

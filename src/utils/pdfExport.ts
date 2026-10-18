@@ -161,7 +161,6 @@ export function printQuotation(quote: Quotation): void {
           <div>
             <div class="brand-title">HOA SEN HOME</div>
             <div class="brand-sub">Hệ thống Tra cứu Bảng giá & Lập báo giá Sản phẩm Hoa Sen Home</div>
-            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Phiên bản bảng giá: <strong>${quote.priceVersionName}</strong></div>
           </div>
         </div>
         <div style="text-align: right;">
@@ -232,17 +231,25 @@ export function printQuotation(quote: Quotation): void {
       }
 
       <div class="notice">
-        * Lưu ý: Bảng báo giá này được xuất từ hệ thống tra cứu nội bộ HOA SEN HOME. Đơn giá áp dụng theo phiên bản <strong>${quote.priceVersionName}</strong> tại thời điểm lập báo giá. Quý khách vui lòng xác nhận đơn hàng trước khi bảng giá hết hiệu lực.
+        * Lưu ý: Bảng báo giá này được xuất từ hệ thống tra cứu nội bộ HOA SEN HOME. Đơn giá áp dụng theo chính sách bán hàng hiện hành tại thời điểm lập báo giá. Quý khách vui lòng xác nhận đơn hàng trước khi bảng giá hết hiệu lực.
       </div>
 
-      <div class="footer">
-        <div>
-          <div class="sign-title">ĐẠI DIỆN KHÁCH HÀNG</div>
-          <div style="color: #94a3b8;">(Ký & ghi rõ họ tên)</div>
+      <div class="footer" style="display: flex; justify-content: space-between; text-align: center; margin-top: 36px; padding-top: 16px; border-top: 1px solid #cbd5e1;">
+        <div style="flex: 1;">
+          <div class="sign-title" style="font-weight: 700; color: #1e293b; text-transform: uppercase;">ĐẠI DIỆN KHÁCH HÀNG</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">(Ký & ghi rõ họ tên)</div>
+          <div style="height: 55px;"></div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 13px; border-top: 1px dotted #cbd5e1; padding-top: 6px; display: inline-block; min-width: 140px;">
+            ${quote.customerName || 'Khách hàng'}
+          </div>
         </div>
-        <div>
-          <div class="sign-title">NHÂN VIÊN LẬP BÁO GIÁ</div>
-          <div style="font-weight: 600; color: #1e293b;">${quote.creatorName}</div>
+        <div style="flex: 1;">
+          <div class="sign-title" style="font-weight: 700; color: #1e293b; text-transform: uppercase;">ĐẠI DIỆN HOA SEN HOME</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">(Nhân viên lập báo giá)</div>
+          <div style="height: 55px;"></div>
+          <div style="font-weight: 700; color: #C8102E; font-size: 13px; border-top: 1px dotted #cbd5e1; padding-top: 6px; display: inline-block; min-width: 140px;">
+            ${quote.creatorName}
+          </div>
         </div>
       </div>
 

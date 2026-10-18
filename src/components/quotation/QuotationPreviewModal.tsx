@@ -65,17 +65,24 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
     if (wasFitScreen) {
       setIsFitScreen(false);
       // Wait for React to re-render unscaled before capturing
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 80));
     }
 
     try {
-      const canvas = await html2canvas(previewRef.current, {
+      const paperEl = previewRef.current;
+      const fullHeight = Math.max(paperEl.scrollHeight, paperEl.offsetHeight, 960) + 40;
+
+      const canvas = await html2canvas(paperEl, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         width: 800,
-        windowWidth: 800,
+        height: fullHeight,
+        windowWidth: 1000,
+        windowHeight: fullHeight + 200,
+        scrollY: 0,
+        scrollX: 0,
         onclone: (clonedDoc) => {
           // Ensure cloned paper is visible and fixed width
           const target = clonedDoc.getElementById('hoa-sen-quotation-paper');
@@ -83,7 +90,16 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             target.style.transform = 'none';
             target.style.width = '800px';
             target.style.minWidth = '800px';
+            target.style.maxWidth = '800px';
+            target.style.height = `${fullHeight}px`;
+            target.style.overflow = 'visible';
             target.style.margin = '0 auto';
+            target.style.paddingBottom = '48px';
+            if (target.parentElement) {
+              target.parentElement.style.transform = 'none';
+              target.parentElement.style.overflow = 'visible';
+              target.parentElement.style.marginBottom = '0px';
+            }
           }
         }
       });
@@ -113,17 +129,42 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
     const wasFitScreen = isFitScreen;
     if (wasFitScreen) {
       setIsFitScreen(false);
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 80));
     }
 
     try {
-      const canvas = await html2canvas(previewRef.current, {
+      const paperEl = previewRef.current;
+      const fullHeight = Math.max(paperEl.scrollHeight, paperEl.offsetHeight, 960) + 40;
+
+      const canvas = await html2canvas(paperEl, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
         width: 800,
-        windowWidth: 800
+        height: fullHeight,
+        windowWidth: 1000,
+        windowHeight: fullHeight + 200,
+        scrollY: 0,
+        scrollX: 0,
+        onclone: (clonedDoc) => {
+          const target = clonedDoc.getElementById('hoa-sen-quotation-paper');
+          if (target) {
+            target.style.transform = 'none';
+            target.style.width = '800px';
+            target.style.minWidth = '800px';
+            target.style.maxWidth = '800px';
+            target.style.height = `${fullHeight}px`;
+            target.style.overflow = 'visible';
+            target.style.margin = '0 auto';
+            target.style.paddingBottom = '48px';
+            if (target.parentElement) {
+              target.parentElement.style.transform = 'none';
+              target.parentElement.style.overflow = 'visible';
+              target.parentElement.style.marginBottom = '0px';
+            }
+          }
+        }
       });
 
       canvas.toBlob(async (blob) => {
@@ -286,7 +327,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               style={{ 
                 width: '800px', 
                 minWidth: '800px',
-                padding: '36px 40px',
+                padding: '36px 40px 50px 40px',
                 backgroundColor: '#ffffff',
                 color: '#1e293b',
                 fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -313,11 +354,6 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                     </div>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '3px' }}>
                       Hệ thống Phân phối Vật liệu Xây dựng & Nội thất Hoa Sen
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#64748B', marginTop: '3px', display: 'flex', gap: '12px' }}>
-                      <span>Tổng đài: <strong>1800 1515</strong></span>
-                      <span>•</span>
-                      <span>Website: <strong>hoasenhome.vn</strong></span>
                     </div>
                   </div>
                 </div>
@@ -396,8 +432,8 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                     <strong style={{ color: '#0F172A' }}>{quotation.creatorName}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748B', display: 'inline-block', width: '105px' }}>Bảng giá áp dụng:</span>
-                    <span style={{ fontWeight: 600, color: '#1E293B' }}>{quotation.priceVersionName}</span>
+                    <span style={{ color: '#64748B', display: 'inline-block', width: '105px' }}>Đơn vị tiền tệ:</span>
+                    <span style={{ fontWeight: 600, color: '#1E293B' }}>Việt Nam Đồng (VND)</span>
                   </div>
                   <div>
                     <span style={{ color: '#64748B', display: 'inline-block', width: '105px' }}>Hiệu lực báo giá:</span>
@@ -516,35 +552,55 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
 
               {/* Signatures */}
               <div style={{ 
-                borderTop: '1px solid #E2E8F0', 
-                paddingTop: '18px', 
+                borderTop: '1px solid #CBD5E1', 
+                paddingTop: '16px', 
                 display: 'grid', 
                 gridTemplateColumns: '1fr 1fr', 
                 textAlign: 'center', 
-                fontSize: '12px' 
+                fontSize: '12px',
+                marginBottom: '20px' 
               }}>
-                <div>
-                  <div style={{ fontWeight: 800, textTransform: 'uppercase', color: '#1E293B' }}>ĐẠI DIỆN KHÁCH HÀNG</div>
-                  <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>(Ký & ghi rõ họ tên)</div>
-                  <div style={{ height: '60px' }} />
-                  <div style={{ fontWeight: 600, color: '#334155' }}>{quotation.customerName || 'Khách hàng'}</div>
+                <div style={{ padding: '0 16px' }}>
+                  <div style={{ fontWeight: 800, textTransform: 'uppercase', color: '#1E293B', fontSize: '13px' }}>ĐẠI DIỆN KHÁCH HÀNG</div>
+                  <div style={{ fontSize: '10.5px', color: '#64748B', marginTop: '2px' }}>(Ký & ghi rõ họ tên)</div>
+                  <div style={{ height: '55px' }} />
+                  <div style={{ 
+                    fontWeight: 800, 
+                    color: '#0F172A', 
+                    fontSize: '14px', 
+                    borderTop: '1px dotted #CBD5E1', 
+                    paddingTop: '6px',
+                    display: 'inline-block',
+                    minWidth: '160px'
+                  }}>
+                    {quotation.customerName || 'Khách hàng'}
+                  </div>
                 </div>
 
-                <div>
-                  <div style={{ fontWeight: 800, textTransform: 'uppercase', color: '#1E293B' }}>ĐẠI DIỆN HOA SEN HOME</div>
-                  <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>(Nhân viên lập báo giá)</div>
-                  <div style={{ height: '60px' }} />
-                  <div style={{ fontWeight: 800, color: '#E60012' }}>{quotation.creatorName}</div>
+                <div style={{ padding: '0 16px' }}>
+                  <div style={{ fontWeight: 800, textTransform: 'uppercase', color: '#1E293B', fontSize: '13px' }}>ĐẠI DIỆN HOA SEN HOME</div>
+                  <div style={{ fontSize: '10.5px', color: '#64748B', marginTop: '2px' }}>(Nhân viên lập báo giá)</div>
+                  <div style={{ height: '55px' }} />
+                  <div style={{ 
+                    fontWeight: 800, 
+                    color: '#E60012', 
+                    fontSize: '14px', 
+                    borderTop: '1px dotted #CBD5E1', 
+                    paddingTop: '6px',
+                    display: 'inline-block',
+                    minWidth: '160px'
+                  }}>
+                    {quotation.creatorName}
+                  </div>
                 </div>
               </div>
 
               {/* Official Document Security Footer */}
               <div style={{ 
-                marginTop: '24px', 
                 paddingTop: '10px', 
                 borderTop: '1px dashed #CBD5E1', 
                 fontSize: '10px', 
-                color: '#94A3B8', 
+                color: '#64748B', 
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center' 

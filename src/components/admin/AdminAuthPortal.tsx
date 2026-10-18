@@ -104,12 +104,6 @@ export const AdminAuthPortal: React.FC = () => {
     }
   };
 
-  const handleQuickDemoAdmin = () => {
-    setAdminEmail('admin@hoasenhome.vn');
-    setAdminPassword('HoaSen@2026');
-    setAdminFullName('Trần Quản Trị');
-  };
-
   return (
     <div className="min-h-[75vh] flex items-center justify-center p-3 sm:p-4">
       <div className="w-full max-w-md bg-white rounded-3xl border border-[#E5EAF1] shadow-lg p-5 sm:p-7 space-y-5 animate-in fade-in duration-200">
@@ -214,16 +208,6 @@ export const AdminAuthPortal: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-1">
-              <button
-                type="button"
-                onClick={handleQuickDemoAdmin}
-                className="text-[#E60012] hover:underline font-medium"
-              >
-                Điền mẫu thử nghiệm
-              </button>
-            </div>
-
             <button
               type="submit"
               disabled={authLoading}
@@ -323,20 +307,8 @@ export const AdminAuthPortal: React.FC = () => {
           </form>
         )}
 
-        {/* Demo instant button */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#64748B]">
-          <span>Thử nghiệm nhanh:</span>
-          <button
-            type="button"
-            onClick={() => switchRole('admin')}
-            className="text-[#E60012] font-bold hover:underline"
-          >
-            Bật quyền Admin ngay (Demo)
-          </button>
-        </div>
-
         {/* Back to Staff App */}
-        <div className="pt-1 text-center">
+        <div className="pt-2 text-center">
           <button
             type="button"
             onClick={() => setActiveTab('home')}

@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import type { Product } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { formatVND } from '../../utils/formatters';
-import { 
-  Heart, 
-  Plus, 
-  Check, 
-  Copy, 
+import {
+  Heart,
+  Plus,
+  Check,
+  Copy,
   Box
 } from 'lucide-react';
 
@@ -16,17 +16,17 @@ interface ProductCardProps {
   onOpenDetail?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  selectedPriceKey = 'gia_khach_le', 
-  onOpenDetail 
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  selectedPriceKey = 'gia_khach_le',
+  onOpenDetail
 }) => {
-  const { 
-    isFavorite, 
-    toggleFavorite, 
-    addToQuotation, 
+  const {
+    isFavorite,
+    toggleFavorite,
+    addToQuotation,
     addToRecent,
-    setSelectedProduct 
+    setSelectedProduct
   } = useApp();
 
   const [copied, setCopied] = useState(false);
@@ -35,9 +35,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const favorited = isFavorite(product.id);
 
   // Determine active price to display based on selected tier
-  const priceDetail = product.prices[selectedPriceKey] || 
-    product.prices.gia_khach_le || 
-    product.prices.gia_khach_si || 
+  const priceDetail = product.prices[selectedPriceKey] ||
+    product.prices.gia_khach_le ||
+    product.prices.gia_khach_si ||
     product.prices.gia_niem_yet;
 
   const displayPrice = priceDetail?.value;
@@ -77,7 +77,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const ratingVal = (4.8 + (((product.row_number || 1) % 3) * 0.1)).toFixed(1);
 
   return (
-    <div 
+    <div
       onClick={handleCardClick}
       itemScope
       itemType="https://schema.org/Product"
@@ -136,9 +136,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               type="button"
               onClick={handleToggleFav}
-              className={`p-1.5 rounded-lg transition-colors ${
-                favorited ? 'text-[#E60012] bg-red-50' : 'text-[#64748B] hover:text-[#E60012] hover:bg-slate-100'
-              }`}
+              className={`p-1.5 rounded-lg transition-colors ${favorited ? 'text-[#E60012] bg-red-50' : 'text-[#64748B] hover:text-[#E60012] hover:bg-slate-100'
+                }`}
               title="Lưu yêu thích"
               aria-label="Yêu thích"
             >
@@ -180,10 +179,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Price & Action Footer */}
-      <div 
-        itemProp="offers" 
-        itemScope 
-        itemType="https://schema.org/Offer" 
+      <div
+        itemProp="offers"
+        itemScope
+        itemType="https://schema.org/Offer"
         className="mt-3 pt-2.5 border-t border-[#E5EAF1] flex items-end justify-between gap-2"
       >
         <meta itemProp="priceCurrency" content="VND" />
@@ -210,11 +209,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           type="button"
           onClick={handleAddQuotation}
-          className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0 transition-all select-none ${
-            addedAnim
+          className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0 transition-all select-none ${addedAnim
               ? 'bg-emerald-600 text-white scale-105 shadow-xs'
               : 'bg-[#E60012] hover:bg-[#C90010] active:scale-95 text-white shadow-2xs shadow-red-500/20'
-          }`}
+            }`}
           title="Thêm vào báo giá"
         >
           {addedAnim ? (

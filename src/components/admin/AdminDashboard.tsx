@@ -5,6 +5,7 @@ import { formatVND, formatDate } from '../../utils/formatters';
 import { EXCEL_RECONCILIATION_DATA } from '../../data/excelReconciliation';
 import { checkSupabaseConnection, SUPABASE_URL } from '../../utils/supabaseClient';
 import { AdminAuthPortal } from './AdminAuthPortal';
+import { ProductPriceManager } from './ProductPriceManager';
 import * as XLSX from 'xlsx';
 import { 
   FileSpreadsheet, 
@@ -27,7 +28,10 @@ import {
   Database,
   RotateCcw,
   LogOut,
-  Settings
+  Settings,
+  Tag,
+  PackagePlus,
+  Percent
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -56,7 +60,7 @@ export const AdminDashboard: React.FC = () => {
     comparison: PriceComparisonItem[];
   } | null>(null);
 
-  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'import' | 'reconciliation' | 'history' | 'audit' | 'settings'>('overview');
+  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'products' | 'import' | 'reconciliation' | 'history' | 'audit' | 'settings'>('overview');
   const [filterComparison, setFilterComparison] = useState<'all' | 'increased' | 'decreased' | 'new' | 'unchanged'>('all');
 
   // Supabase test connection state for admin settings tab
@@ -300,6 +304,15 @@ export const AdminDashboard: React.FC = () => {
               Tổng quan
             </button>
             <button
+              onClick={() => setActiveAdminTab('products')}
+              className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                activeAdminTab === 'products' ? 'bg-white text-red-600 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>Quản lý giá ({products.length})</span>
+            </button>
+            <button
               onClick={() => setActiveAdminTab('import')}
               className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
                 activeAdminTab === 'import' ? 'bg-white text-red-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -362,10 +375,19 @@ export const AdminDashboard: React.FC = () => {
           
           {/* Key Metrics Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-              <div className="text-xs font-semibold text-slate-500">Tổng sản phẩm</div>
+            <div 
+              onClick={() => setActiveAdminTab('products')}
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs cursor-pointer hover:border-red-300 hover:shadow-sm transition-all group"
+              title="Nhấn để mở trang Quản lý giá & sản phẩm"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-semibold text-slate-500">Tổng sản phẩm</div>
+                <Tag className="w-3.5 h-3.5 text-slate-400 group-hover:text-red-500 transition-colors" />
+              </div>
               <div className="text-2xl font-extrabold text-slate-900 mt-1">{products.length}</div>
-              <div className="text-[11px] text-emerald-600 font-medium mt-0.5">100% dữ liệu thật</div>
+              <div className="text-[11px] text-red-600 font-bold mt-0.5 flex items-center gap-1">
+                <span>Quản lý & sửa giá →</span>
+              </div>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -387,6 +409,41 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
+          {/* Quick Management Shortcuts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div 
+              onClick={() => setActiveAdminTab('products')}
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-red-300 shadow-xs hover:shadow-sm cursor-pointer transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Tag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Quản lý Bảng giá & Sản phẩm</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Thêm mới, sửa từng mức giá lẻ/sỉ/thầu thợ, xóa sản phẩm</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-red-600 group-hover:translate-x-0.5 transition-transform">Truy cập →</span>
+            </div>
+
+            <div 
+              onClick={() => setActiveAdminTab('import')}
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 hover:border-blue-300 shadow-xs hover:shadow-sm cursor-pointer transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-sm">Nhập Excel Bảng Giá Mới</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Tải file .xlsx, tự động bóc tách và đối soát chênh lệch</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-blue-600 group-hover:translate-x-0.5 transition-transform">Truy cập →</span>
+            </div>
+          </div>
+
           {/* Current Active Version Banner */}
           <div className="bg-gradient-to-r from-red-900 to-slate-900 text-white p-5 rounded-3xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -400,13 +457,23 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => setActiveAdminTab('import')}
-              className="px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95"
-            >
-              <Upload className="w-4 h-4 text-red-600" />
-              <span>Nhập bản cập nhật mới</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveAdminTab('products')}
+                className="px-3.5 py-2.5 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95 border border-red-700"
+              >
+                <Tag className="w-4 h-4 text-red-200" />
+                <span>Xem & sửa bảng giá</span>
+              </button>
+
+              <button
+                onClick={() => setActiveAdminTab('import')}
+                className="px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-95"
+              >
+                <Upload className="w-4 h-4 text-red-600" />
+                <span>Nhập Excel mới</span>
+              </button>
+            </div>
           </div>
 
           {/* Recent Audit Log Preview */}
@@ -440,6 +507,11 @@ export const AdminDashboard: React.FC = () => {
           </div>
 
         </div>
+      )}
+
+      {/* PRODUCTS & PRICE MANAGEMENT TAB */}
+      {activeAdminTab === 'products' && (
+        <ProductPriceManager />
       )}
 
       {/* IMPORT TAB */}

@@ -23,6 +23,10 @@ interface AppContextType {
   currentVersion: PriceVersion;
   versionHistory: PriceVersion[];
   updateProductsWithNewVersion: (newProducts: Product[], version: PriceVersion) => void;
+  addProduct: (product: Omit<Product, 'id'> & { id?: string }) => Product;
+  updateProduct: (product: Product) => void;
+  deleteProduct: (productId: string) => void;
+  batchUpdatePrices: (productIds: string[], percentageChange: number, targetPriceKeys?: string[]) => void;
 
   // Filters & Search
   filters: FilterState;
@@ -534,6 +538,151 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Cập nhật trạng thái báo giá', `Báo giá ${id} chuyển sang: ${status}`);
   };
 
+  const addProduct = (productData: Omit<Product, 'id'> & { id?: string }): Product => {
+    const id = productData.id || `PROD-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+    const newProduct: Product = {
+      ...productData,
+      id,
+      source_file: productData.source_file || currentVersion.filename || 'Thêm thủ công qua Admin',
+      sheet_name: productData.sheet_name || productData.category || 'Chung',
+      row_number: productData.row_number || (products.length + 1),
+      category: productData.category || 'Khác',
+      group_name: productData.group_name || productData.category || 'Khác',
+      product_name: productData.product_name,
+      sku: productData.sku || `HS-${Date.now().toString().slice(-6)}`,
+      brand: productData.brand || 'Hoa Sen Home',
+      specs: productData.specs || '',
+      unit: productData.unit || 'Cái',
+      packaging: productData.packaging || '',
+      notes: productData.notes || '',
+      prices: productData.prices || {}
+    };
+
+    setProducts(prev => [newProduct, ...prev]);
+    setCurrentVersion(prev => ({
+      ...prev,
+      totalProducts: prev.totalProducts + 1
+    }));
+
+    addAuditLog(
+      'Thêm sản phẩm mới',
+      `Thêm sản phẩm: ${newProduct.product_name} (Mã: ${newProduct.sku})`
+    );
+
+    try {
+      supabase.from('products').upsert({
+        id: newProduct.id,
+        sku: newProduct.sku,
+        product_name: newProduct.product_name,
+        category: newProduct.category,
+        brand: newProduct.brand,
+        specs: newProduct.specs,
+        unit: newProduct.unit,
+        packaging: newProduct.packaging,
+        notes: newProduct.notes,
+        prices: newProduct.prices,
+        sheet_name: newProduct.sheet_name,
+        row_number: newProduct.row_number,
+        source_file: newProduct.source_file
+      }).then();
+    } catch {
+      // offline / table not created
+    }
+
+    return newProduct;
+  };
+
+  const updateProduct = (updatedProduct: Product) => {
+    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+
+    if (selectedProduct?.id === updatedProduct.id) {
+      setSelectedProduct(updatedProduct);
+    }
+
+    addAuditLog(
+      'Cập nhật sản phẩm & giá',
+      `Cập nhật: ${updatedProduct.product_name} (Mã: ${updatedProduct.sku})`
+    );
+
+    try {
+      supabase.from('products').upsert({
+        id: updatedProduct.id,
+        sku: updatedProduct.sku,
+        product_name: updatedProduct.product_name,
+        category: updatedProduct.category,
+        brand: updatedProduct.brand,
+        specs: updatedProduct.specs,
+        unit: updatedProduct.unit,
+        packaging: updatedProduct.packaging,
+        notes: updatedProduct.notes,
+        prices: updatedProduct.prices,
+        sheet_name: updatedProduct.sheet_name,
+        row_number: updatedProduct.row_number,
+        source_file: updatedProduct.source_file,
+        updated_at: new Date().toISOString()
+      }).then();
+    } catch {
+      // offline
+    }
+  };
+
+  const deleteProduct = (productId: string) => {
+    const target = products.find(p => p.id === productId);
+    setProducts(prev => prev.filter(p => p.id !== productId));
+    setCurrentVersion(prev => ({
+      ...prev,
+      totalProducts: Math.max(0, prev.totalProducts - 1)
+    }));
+
+    if (selectedProduct?.id === productId) {
+      setSelectedProduct(null);
+    }
+
+    setFavoriteIds(prev => prev.filter(id => id !== productId));
+
+    addAuditLog(
+      'Xóa sản phẩm',
+      `Đã xóa: ${target?.product_name || productId} (Mã: ${target?.sku || ''})`
+    );
+
+    try {
+      supabase.from('products').delete().eq('id', productId).then();
+    } catch {
+      // offline
+    }
+  };
+
+  const batchUpdatePrices = (productIds: string[], percentageChange: number, targetPriceKeys?: string[]) => {
+    const factor = 1 + percentageChange / 100;
+    const defaultKeys = ['gia_niem_yet', 'gia_khach_le', 'gia_thau_tho', 'gia_khach_si', 'gia_ban_mau'];
+    const keysToUpdate = targetPriceKeys && targetPriceKeys.length > 0 ? targetPriceKeys : defaultKeys;
+
+    setProducts(prev =>
+      prev.map(p => {
+        if (!productIds.includes(p.id)) return p;
+        const newPrices = { ...p.prices };
+        keysToUpdate.forEach(k => {
+          const cur = newPrices[k];
+          if (cur && typeof cur.value === 'number') {
+            newPrices[k] = {
+              ...cur,
+              value: Math.round(cur.value * factor)
+            };
+          }
+        });
+        return {
+          ...p,
+          prices: newPrices
+        };
+      })
+    );
+
+    addAuditLog(
+      'Điều chỉnh giá hàng loạt',
+      `Điều chỉnh ${percentageChange > 0 ? '+' : ''}${percentageChange}% cho ${productIds.length} sản phẩm`
+    );
+  };
+
   const updateProductsWithNewVersion = (newProducts: Product[], version: PriceVersion) => {
     setProducts(newProducts);
     setCurrentVersion(version);
@@ -557,6 +706,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentVersion,
         versionHistory,
         updateProductsWithNewVersion,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        batchUpdatePrices,
         filters,
         setFilters,
         resetFilters,

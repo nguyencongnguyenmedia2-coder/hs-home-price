@@ -14,7 +14,7 @@ import {
 import { HOA_SEN_LOGO_BASE64 } from '../../assets/brandLogo';
 
 export const EmployeeGateModal: React.FC = () => {
-  const { loginWithEmployeeCode, setActiveTab } = useApp();
+  const { loginWithEmployeeCode } = useApp();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -141,17 +141,6 @@ export const EmployeeGateModal: React.FC = () => {
               <Phone className="w-3.5 h-3.5 text-emerald-600" />
               <span>ĐT: 0981 008 274</span>
             </a>
-          </div>
-
-          {/* Admin link */}
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab('admin')}
-              className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 transition-colors"
-            >
-              Cổng Quản Trị Hệ Thống (/admin) →
-            </button>
           </div>
         </div>
 

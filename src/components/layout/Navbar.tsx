@@ -32,9 +32,11 @@ export const Navbar: React.FC = () => {
             onClick={() => setActiveTab('home')}
             className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none group min-w-0"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#E60012] flex items-center justify-center text-white font-extrabold text-sm sm:text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform">
-              HS
-            </div>
+            <img 
+              src="/hoa-sen-home-logo.png" 
+              alt="Hoa Sen Home" 
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-sm shrink-0 group-hover:scale-105 transition-transform" 
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-nowrap">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-[#172033] group-hover:text-[#E60012] transition-colors whitespace-nowrap">

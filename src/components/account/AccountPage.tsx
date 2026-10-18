@@ -25,14 +25,17 @@ export const AccountPage: React.FC = () => {
     <div className="space-y-4 sm:space-y-6 pb-24 md:pb-12 max-w-4xl mx-auto">
       
       {/* Header */}
-      <div className="border-b border-[#E5EAF1] pb-3">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] flex items-center gap-2">
-          <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#E60012] stroke-[2.2]" />
-          <span>Tài Khoản & Thông Tin Hệ Thống</span>
-        </h1>
-        <p className="text-xs text-[#64748B] mt-0.5">
-          Ứng dụng tra cứu sản phẩm và bảng giá nội bộ Tập đoàn Hoa Sen Home.
-        </p>
+      <div className="border-b border-[#E5EAF1] pb-3 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] flex items-center gap-2">
+            <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#E60012] stroke-[2.2]" />
+            <span>Tài Khoản & Thông Tin Hệ Thống</span>
+          </h1>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Ứng dụng tra cứu sản phẩm và bảng giá nội bộ Tập đoàn Hoa Sen Home.
+          </p>
+        </div>
+        <img src="/hoa-sen-home-logo.png" alt="Hoa Sen Home" className="w-10 h-10 rounded-xl object-cover shadow-xs hidden sm:block" />
       </div>
 
       {/* Profile Card */}

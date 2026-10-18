@@ -56,9 +56,11 @@ export const AdminAuthPortal: React.FC = () => {
         
         {/* Header & Logo */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-[#E60012] text-white font-extrabold text-xl flex items-center justify-center mx-auto shadow-sm">
-            HS
-          </div>
+          <img 
+            src="/hoa-sen-home-logo.png" 
+            alt="Hoa Sen Home" 
+            className="w-14 h-14 rounded-2xl object-cover mx-auto shadow-sm" 
+          />
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-[#E60012] text-[10px] font-bold uppercase mb-1">
               <ShieldCheck className="w-3.5 h-3.5" />

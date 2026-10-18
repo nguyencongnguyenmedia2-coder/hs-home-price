@@ -3,6 +3,7 @@ import type { Quotation } from '../../types';
 import { formatVND, formatDate } from '../../utils/formatters';
 import { printQuotation } from '../../utils/pdfExport';
 import html2canvas from 'html2canvas-pro';
+import { HOA_SEN_LOGO_BASE64 } from '../../assets/brandLogo';
 import { 
   X, 
   Share2, 
@@ -166,9 +167,11 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
         {/* Top Control Bar */}
         <div className="px-3 py-2.5 sm:px-5 sm:py-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
-              HS
-            </div>
+            <img 
+              src={HOA_SEN_LOGO_BASE64} 
+              alt="Hoa Sen Home" 
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shrink-0 shadow-sm" 
+            />
             <div className="min-w-0">
               <div className="font-extrabold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5 truncate">
                 <span>Xem Trước:</span>
@@ -293,22 +296,17 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               {/* Corporate Brand Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #E60012', paddingBottom: '16px', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <div style={{ 
-                    width: '48px', 
-                    height: '48px', 
-                    borderRadius: '10px', 
-                    backgroundColor: '#E60012', 
-                    color: '#ffffff', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    fontWeight: 900, 
-                    fontSize: '20px',
-                    letterSpacing: '-0.5px',
-                    boxShadow: '0 2px 8px rgba(230,0,18,0.25)'
-                  }}>
-                    HS
-                  </div>
+                  <img 
+                    src={HOA_SEN_LOGO_BASE64} 
+                    alt="Hoa Sen Home" 
+                    style={{ 
+                      width: '54px', 
+                      height: '54px', 
+                      borderRadius: '12px', 
+                      objectFit: 'cover',
+                      boxShadow: '0 2px 8px rgba(230,0,18,0.2)' 
+                    }} 
+                  />
                   <div>
                     <div style={{ fontSize: '22px', fontWeight: 900, color: '#E60012', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
                       HOA SEN HOME

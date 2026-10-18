@@ -71,13 +71,16 @@ export const HomePage: React.FC = () => {
       
       {/* KHU VỰC 1: Lời chào ngắn gọn */}
       <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] tracking-tight">
-            Tra cứu giá nhanh
-          </h1>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
-            Tìm sản phẩm và báo giá ngay tại điểm bán.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <img src="/hoa-sen-home-logo.png" alt="Hoa Sen Home" className="w-9 h-9 rounded-xl object-cover shadow-xs shrink-0" />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] tracking-tight">
+              Tra cứu giá nhanh
+            </h1>
+            <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
+              Tìm sản phẩm và báo giá ngay tại điểm bán.
+            </p>
+          </div>
         </div>
         
         {/* Version Indicator */}

@@ -1,5 +1,6 @@
 import type { Quotation } from '../types';
 import { formatVND, formatDate } from './formatters';
+import { HOA_SEN_LOGO_BASE64 } from '../assets/brandLogo';
 
 /**
  * Mở cửa sổ in chuyên nghiệp và kích hoạt in / lưu PDF trực tiếp từ trình duyệt
@@ -154,11 +155,14 @@ export function printQuotation(quote: Quotation): void {
       </style>
     </head>
     <body>
-      <div class="header">
-        <div>
-          <div class="brand-title">HOA SEN HOME</div>
-          <div class="brand-sub">Hệ thống Tra cứu Bảng giá & Lập báo giá Sản phẩm Hoa Sen Home</div>
-          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Phiên bản bảng giá: <strong>${quote.priceVersionName}</strong></div>
+      <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #C8102E; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="${HOA_SEN_LOGO_BASE64}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;" alt="Hoa Sen Home" />
+          <div>
+            <div class="brand-title">HOA SEN HOME</div>
+            <div class="brand-sub">Hệ thống Tra cứu Bảng giá & Lập báo giá Sản phẩm Hoa Sen Home</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Phiên bản bảng giá: <strong>${quote.priceVersionName}</strong></div>
+          </div>
         </div>
         <div style="text-align: right;">
           <div style="font-weight: 700; font-size: 15px; color: #C8102E;">${quote.code}</div>

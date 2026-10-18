@@ -143,11 +143,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Detail Modal
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Active Tab with /admin URL detection
+  // Active Tab with /admin URL detection (supports path /admin, hash #admin or query ?tab=admin)
   const [activeTab, setActiveTabState] = useState<'home' | 'catalog' | 'quotation' | 'favorites' | 'admin' | 'account'>(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
-      if (path === '/admin' || path.startsWith('/admin') || window.location.hash === '#admin') {
+      const hash = window.location.hash;
+      const search = new URLSearchParams(window.location.search);
+      if (
+        path === '/admin' || 
+        path.startsWith('/admin') || 
+        hash === '#admin' || 
+        hash.includes('/admin') ||
+        search.get('tab') === 'admin'
+      ) {
         return 'admin';
       }
     }
@@ -171,14 +179,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const handlePopState = () => {
-      if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin') || window.location.hash === '#admin') {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      const search = new URLSearchParams(window.location.search);
+      if (
+        path === '/admin' || 
+        path.startsWith('/admin') || 
+        hash === '#admin' || 
+        hash.includes('/admin') ||
+        search.get('tab') === 'admin'
+      ) {
         setActiveTabState('admin');
       } else {
         setActiveTabState('home');
       }
     };
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
   }, []);
 
   // Audit Logs

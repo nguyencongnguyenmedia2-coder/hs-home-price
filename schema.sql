@@ -1,5 +1,5 @@
 -- ==============================================================================
--- CƠ SỞ DỮ LIỆU HỆ THỐNG HS HOME PRICE
+-- CƠ SỞ DỮ LIỆU HỆ THỐNG HOA SEN HOME
 -- Bảng giá sản phẩm, tra cứu, báo giá & phân quyền người dùng
 -- Phù hợp PostgreSQL 15+ & Supabase Database
 -- ==============================================================================

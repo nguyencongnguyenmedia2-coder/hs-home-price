@@ -38,7 +38,7 @@ export const Navbar: React.FC = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-nowrap">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-[#172033] group-hover:text-[#E60012] transition-colors whitespace-nowrap">
-                  HS HOME PRICE
+                  HOA SEN HOME
                 </span>
                 <span className="px-1.5 py-0.2 text-[9px] sm:text-[10px] font-bold uppercase rounded bg-amber-50 text-amber-800 border border-amber-200/60 shrink-0">
                   Nội bộ

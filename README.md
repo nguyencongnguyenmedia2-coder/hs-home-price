@@ -1,4 +1,4 @@
-# HS HOME PRICE – Tra Cứu Sản Phẩm & Bảng Giá Hoa Sen Home
+# HOA SEN HOME – Tra Cứu Sản Phẩm & Bảng Giá Hoa Sen Home
 
 Ứng dụng web/mobile phục vụ nhân viên thị trường Tập đoàn Hoa Sen Home tra cứu sản phẩm, xem bảng giá đa đối tượng (Sỉ, Thầu thợ, Lẻ, Niêm yết) và lập báo giá xuất ảnh PNG / PDF gửi Zalo ngay tại điểm bán.
 

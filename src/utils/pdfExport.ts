@@ -156,7 +156,7 @@ export function printQuotation(quote: Quotation): void {
     <body>
       <div class="header">
         <div>
-          <div class="brand-title">HS HOME PRICE</div>
+          <div class="brand-title">HOA SEN HOME</div>
           <div class="brand-sub">Hệ thống Tra cứu Bảng giá & Lập báo giá Sản phẩm Hoa Sen Home</div>
           <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Phiên bản bảng giá: <strong>${quote.priceVersionName}</strong></div>
         </div>
@@ -228,7 +228,7 @@ export function printQuotation(quote: Quotation): void {
       }
 
       <div class="notice">
-        * Lưu ý: Bảng báo giá này được xuất từ hệ thống tra cứu nội bộ HS HOME PRICE. Đơn giá áp dụng theo phiên bản <strong>${quote.priceVersionName}</strong> tại thời điểm lập báo giá. Quý khách vui lòng xác nhận đơn hàng trước khi bảng giá hết hiệu lực.
+        * Lưu ý: Bảng báo giá này được xuất từ hệ thống tra cứu nội bộ HOA SEN HOME. Đơn giá áp dụng theo phiên bản <strong>${quote.priceVersionName}</strong> tại thời điểm lập báo giá. Quý khách vui lòng xác nhận đơn hàng trước khi bảng giá hết hiệu lực.
       </div>
 
       <div class="footer">

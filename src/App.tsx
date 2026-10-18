@@ -9,9 +9,12 @@ import { FavoritesPage } from './components/favorites/FavoritesPage';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AccountPage } from './components/account/AccountPage';
 import { ProductDetailModal } from './components/products/ProductDetailModal';
+import { EmployeeGateModal } from './components/auth/EmployeeGateModal';
 
 const AppContent: React.FC = () => {
-  const { activeTab, selectedProduct, setSelectedProduct } = useApp();
+  const { activeTab, selectedProduct, setSelectedProduct, isEmployeeVerified, isAdmin } = useApp();
+
+  const isLocked = !isEmployeeVerified && !isAdmin && activeTab !== 'admin';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
@@ -28,6 +31,9 @@ const AppContent: React.FC = () => {
         {activeTab === 'admin' && <AdminDashboard />}
         {activeTab === 'account' && <AccountPage />}
       </main>
+
+      {/* Internal Employee Verification Gate */}
+      {isLocked && <EmployeeGateModal />}
 
       {/* Product Detail Modal */}
       <ProductDetailModal

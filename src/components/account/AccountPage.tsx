@@ -16,11 +16,20 @@ import {
   ExternalLink,
   Phone,
   MessageCircle,
-  Headphones
+  Headphones,
+  KeyRound
 } from 'lucide-react';
 
 export const AccountPage: React.FC = () => {
-  const { currentUser, currentVersion, products, setActiveTab, logoutAdmin } = useApp();
+  const { 
+    currentUser, 
+    currentVersion, 
+    products, 
+    setActiveTab, 
+    logoutAdmin,
+    employeeCode,
+    logoutEmployeeCode
+  } = useApp();
 
   const isAdmin = currentUser.role === 'admin';
 
@@ -57,9 +66,16 @@ export const AccountPage: React.FC = () => {
                 ? 'bg-red-50 text-[#E60012] border border-red-200'
                 : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
             }`}>
-              {isAdmin ? 'Quản trị viên (Admin)' : 'Truy cập tự do (Không cần đăng nhập)'}
+              {isAdmin ? 'Quản trị viên (Admin)' : (employeeCode ? `Đã xác thực: ${employeeCode}` : 'Nhân viên thị trường')}
             </span>
           </div>
+
+          {employeeCode && (
+            <div className="text-xs text-[#172033] font-mono font-bold flex items-center justify-center sm:justify-start gap-1">
+              <KeyRound className="w-3.5 h-3.5 text-[#E60012]" />
+              <span>Mã nhân viên: <span className="bg-red-50 text-[#E60012] px-2 py-0.5 rounded-md border border-red-200">{employeeCode}</span></span>
+            </div>
+          )}
 
           <div className="text-xs text-[#64748B] flex items-center justify-center sm:justify-start gap-1">
             <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -76,7 +92,7 @@ export const AccountPage: React.FC = () => {
             <div className="mt-2.5 p-3 bg-emerald-50/80 border border-emerald-200/70 rounded-2xl text-xs text-emerald-900 flex items-start gap-2 text-left">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <strong>Chế độ nhân viên thị trường:</strong> Bạn được tự do tra cứu toàn bộ 292 sản phẩm, xem mọi mức giá bán (sỉ, thầu thợ, lẻ, niêm yết), tạo báo giá và lưu ảnh gửi Zalo cho khách hàng mà <strong>không cần đăng nhập hay mật khẩu</strong>.
+                <strong>Chế độ nhân viên Hoa Sen Home:</strong> Bạn đã xác thực mã nhân viên hợp lệ ({employeeCode || 'HSHxxxxxx'}). Bạn được tự do tra cứu toàn bộ 292 sản phẩm, xem mọi mức giá bán (sỉ, thầu thợ, lẻ, niêm yết), tạo báo giá và lưu ảnh gửi Zalo cho khách hàng.
               </div>
             </div>
           ) : (
@@ -89,30 +105,46 @@ export const AccountPage: React.FC = () => {
           )}
         </div>
 
-        {/* Action if Admin is currently logged in */}
-        {isAdmin && (
-          <div className="flex flex-col gap-2 shrink-0 pt-2 sm:pt-0 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab('admin')}
-              className="px-4 py-2 rounded-xl bg-[#E60012] hover:bg-[#C90010] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Mở Bảng Quản Trị</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                logoutAdmin();
-                setActiveTab('home');
-              }}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#172033] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5 text-[#64748B]" />
-              <span>Đăng xuất Admin</span>
-            </button>
-          </div>
-        )}
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2 shrink-0 pt-2 sm:pt-0 w-full sm:w-auto">
+          {isAdmin ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setActiveTab('admin')}
+                className="px-4 py-2 rounded-xl bg-[#E60012] hover:bg-[#C90010] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Mở Bảng Quản Trị</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  logoutAdmin();
+                  setActiveTab('home');
+                }}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#172033] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5 text-[#64748B]" />
+                <span>Đăng xuất Admin</span>
+              </button>
+            </>
+          ) : (
+            employeeCode && (
+              <button
+                type="button"
+                onClick={() => {
+                  logoutEmployeeCode();
+                }}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                title="Đổi hoặc xóa mã nhân viên đã lưu"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Đổi Mã Nhân Viên</span>
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       {/* Staff Guide & Feature Highlights */}

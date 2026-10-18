@@ -12,6 +12,12 @@ interface AppContextType {
   logoutAdmin: () => Promise<void>;
   isAdmin: boolean;
 
+  // Employee Gatekeeper
+  employeeCode: string | null;
+  isEmployeeVerified: boolean;
+  loginWithEmployeeCode: (code: string) => { success: boolean; message?: string };
+  logoutEmployeeCode: () => void;
+
   // Products & Versions
   products: Product[];
   currentVersion: PriceVersion;
@@ -89,12 +95,75 @@ const DEFAULT_USERS: Record<'sales' | 'admin', User> = {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+export const validateEmployeeCode = (code: string): boolean => {
+  if (!code) return false;
+  const clean = code.trim().toUpperCase();
+  return /^HSH\d{4,8}$/.test(clean);
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Current user (Staff by default - no login required)
+  // Employee verification gate (Format HSHxxxxxx, e.g. HSH003687)
+  const [employeeCode, setEmployeeCodeState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('hoasen_employee_code');
+      if (saved && validateEmployeeCode(saved)) {
+        return saved.toUpperCase();
+      }
+    }
+    return null;
+  });
+
+  const isEmployeeVerified = Boolean(employeeCode && validateEmployeeCode(employeeCode));
+
+  // Current user (Staff with employee code by default)
   const [currentUser, setCurrentUser] = useState<User>(() => {
     const saved = localStorage.getItem('hs_current_user');
-    return saved ? JSON.parse(saved) : DEFAULT_STAFF_USER;
+    if (saved) return JSON.parse(saved);
+    const code = localStorage.getItem('hoasen_employee_code');
+    if (code && validateEmployeeCode(code)) {
+      return {
+        ...DEFAULT_STAFF_USER,
+        name: `Nhân viên thị trường (${code.toUpperCase()})`,
+        id: `USR-${code.toUpperCase()}`
+      };
+    }
+    return DEFAULT_STAFF_USER;
   });
+
+  const loginWithEmployeeCode = (code: string): { success: boolean; message?: string } => {
+    const clean = code.trim().toUpperCase();
+    if (!validateEmployeeCode(clean)) {
+      return { 
+        success: false, 
+        message: 'Mã nhân viên không hợp lệ! Vui lòng nhập đúng định dạng HSHxxxxxx (Ví dụ: HSH003687).' 
+      };
+    }
+
+    localStorage.setItem('hoasen_employee_code', clean);
+    setEmployeeCodeState(clean);
+
+    setCurrentUser(prev => {
+      if (prev.role === 'admin') return prev;
+      const updated = {
+        ...prev,
+        name: `Nhân viên thị trường (${clean})`,
+        id: `USR-${clean}`
+      };
+      localStorage.setItem('hs_current_user', JSON.stringify(updated));
+      return updated;
+    });
+
+    return { success: true };
+  };
+
+  const logoutEmployeeCode = () => {
+    localStorage.removeItem('hoasen_employee_code');
+    setEmployeeCodeState(null);
+    setCurrentUser(prev => {
+      if (prev.role === 'admin') return prev;
+      return DEFAULT_STAFF_USER;
+    });
+  };
 
   // Products
   const [products, setProducts] = useState<Product[]>(() => {
@@ -480,6 +549,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         switchRole,
         logoutAdmin,
         isAdmin,
+        employeeCode,
+        isEmployeeVerified,
+        loginWithEmployeeCode,
+        logoutEmployeeCode,
         products,
         currentVersion,
         versionHistory,

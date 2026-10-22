@@ -33,6 +33,8 @@ export interface Product {
   packaging: string;
   notes: string;
   prices: Record<string, PriceDetail | null>;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PriceVersion {
@@ -88,7 +90,7 @@ export interface FilterState {
   brand: string;
   unit: string;
   priceRange: [number, number];
-  sortBy: 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc';
+  sortBy: 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'newest';
   selectedPriceGroup: 'gia_niem_yet' | 'gia_khach_si' | 'gia_thau_tho' | 'gia_khach_le' | 'gia_ban_mau';
 }
 

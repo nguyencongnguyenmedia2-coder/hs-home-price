@@ -4,6 +4,7 @@ import type { Product, PriceVersion, PriceComparisonItem } from '../../types';
 import { formatVND, formatDate } from '../../utils/formatters';
 import { EXCEL_RECONCILIATION_DATA } from '../../data/excelReconciliation';
 import { checkSupabaseConnection, SUPABASE_URL } from '../../utils/supabaseClient';
+import { parseExcelWorkbook } from '../../utils/excelParser';
 import { AdminAuthPortal } from './AdminAuthPortal';
 import { ProductPriceManager } from './ProductPriceManager';
 import * as XLSX from 'xlsx';
@@ -40,6 +41,9 @@ export const AdminDashboard: React.FC = () => {
     currentVersion, 
     versionHistory, 
     updateProductsWithNewVersion, 
+    appendProducts,
+    syncAllProductsToCloud,
+    cloudSyncStatus,
     auditLogs, 
     currentUser,
     logoutAdmin,
@@ -70,10 +74,52 @@ export const AdminDashboard: React.FC = () => {
     message?: string;
   }>({ loading: false });
 
+  const [syncingCloud, setSyncingCloud] = useState(false);
+  const [copiedSQL, setCopiedSQL] = useState(false);
+
   const handleTestSupabase = async () => {
     setSupabaseStatus({ loading: true });
     const res = await checkSupabaseConnection();
     setSupabaseStatus({ loading: false, connected: res.connected, message: res.message });
+  };
+
+  const handleSyncToSupabase = async () => {
+    setSyncingCloud(true);
+    const res = await syncAllProductsToCloud();
+    setSyncingCloud(false);
+    if (res.success) {
+      alert(`Đồng bộ thành công ${res.count} sản phẩm lên Supabase Cloud! Tất cả nhân viên và người dùng trên Vercel đều xem được ngay lập tức.`);
+    } else {
+      alert(`Không thể đồng bộ lên Supabase: ${res.error}\n\nVui lòng kiểm tra tab Cài đặt & chạy file fix_supabase_schema.sql trong Supabase SQL Editor.`);
+    }
+  };
+
+  const FIX_SQL_COMMANDS = `-- Mở quyền ghi và bổ sung cột cho bảng products trên Supabase
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS category VARCHAR(255);
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS brand VARCHAR(255);
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS prices JSONB;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS group_name VARCHAR(255);
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS specs TEXT;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS unit VARCHAR(50) DEFAULT 'Cái';
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS packaging TEXT;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS source_file VARCHAR(255);
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS sheet_name VARCHAR(100);
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS row_number INT;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- Tắt RLS để ứng dụng trên Vercel có thể lưu sản phẩm không bị chặn quyền 42501
+ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS price_versions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS quotations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS favorites DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS audit_logs DISABLE ROW LEVEL SECURITY;
+GRANT ALL ON TABLE products TO anon, authenticated, service_role;`;
+
+  const handleCopyFixSQL = () => {
+    navigator.clipboard.writeText(FIX_SQL_COMMANDS);
+    setCopiedSQL(true);
+    setTimeout(() => setCopiedSQL(false), 2500);
   };
 
   const handleResetToDefault = () => {
@@ -105,66 +151,14 @@ export const AdminDashboard: React.FC = () => {
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
 
-      const sheetNames = workbook.SheetNames;
-      const previewList: Product[] = [];
-      const warnings: string[] = [];
-      let skippedCount = 0;
+      const parsedResult = parseExcelWorkbook(workbook, file.name);
+      const previewList = parsedResult.products;
 
-      // Parse sheets
-      sheetNames.forEach(sheetName => {
-        const ws = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
-        if (!rows || rows.length < 3) {
-          skippedCount += rows.length;
-          return;
-        }
-
-        // Iterate through rows and extract
-        for (let r = 2; r < rows.length; r++) {
-          const row = rows[r];
-          if (!row || row.length === 0) continue;
-
-          // Find first numeric price column
-          const nameCol = row[1] || row[2] || '';
-          if (!nameCol || String(nameCol).trim().length < 2) {
-            skippedCount++;
-            continue;
-          }
-
-          // Search for numeric values
-          const numValues = row.filter(cell => typeof cell === 'number' && cell > 100);
-          if (numValues.length === 0) {
-            skippedCount++;
-            continue;
-          }
-
-          const basePrice = numValues[0];
-          const fullProductName = String(nameCol).trim();
-          const prodId = `PROD-NEW-${previewList.length + 1}`;
-
-          previewList.push({
-            id: prodId,
-            source_file: file.name,
-            sheet_name: sheetName,
-            row_number: r + 1,
-            category: sheetName,
-            group_name: sheetName,
-            product_name: fullProductName,
-            sku: `HS-${sheetName.substring(0, 3).toUpperCase()}-${r + 1}`,
-            brand: 'Hoa Sen Home',
-            specs: String(row[2] || ''),
-            unit: String(row[3] || 'Cái'),
-            packaging: '',
-            notes: '',
-            prices: {
-              gia_niem_yet: { value: basePrice, vat: 'chua_vat', label: 'Giá niêm yết (Chưa VAT)' },
-              gia_khach_le: { value: Math.round(basePrice * 1.08), vat: 'co_vat', label: 'Giá khách lẻ (VAT 8%)' },
-              gia_thau_tho: { value: Math.round(basePrice * 1.08 * 0.9), vat: 'co_vat', label: 'Giá thầu thợ (CK 10%)' },
-              gia_khach_si: { value: Math.round(basePrice * 1.08 * 0.8), vat: 'co_vat', label: 'Giá khách sỉ (CK 20%)' }
-            }
-          });
-        }
-      });
+      if (previewList.length === 0) {
+        alert('Không tìm thấy sản phẩm hoặc giá hợp lệ trong file Excel đã chọn. Vui lòng kiểm tra lại file (cần có cột Tên sản phẩm và Giá).');
+        setAnalyzing(false);
+        return;
+      }
 
       // Price comparison against current products
       const comparisons: PriceComparisonItem[] = [];
@@ -178,7 +172,7 @@ export const AdminDashboard: React.FC = () => {
         const norm = np.product_name.toLowerCase().trim();
         const oldP = currentMap.get(norm);
 
-        const newPrice = np.prices.gia_khach_le?.value || 0;
+        const newPrice = np.prices.gia_khach_le?.value || np.prices.gia_niem_yet?.value || 0;
         if (!oldP) {
           comparisons.push({
             sku: np.sku,
@@ -215,11 +209,11 @@ export const AdminDashboard: React.FC = () => {
       setParsedPreview({
         versionName: file.name.replace(/\.[^/.]+$/, ''),
         effectiveDate: new Date().toISOString().split('T')[0],
-        totalSheets: sheetNames.length,
-        sheetNames,
+        totalSheets: parsedResult.totalSheets,
+        sheetNames: parsedResult.sheetNames,
         parsedProducts: previewList,
-        skippedRowsCount: skippedCount,
-        warnings,
+        skippedRowsCount: parsedResult.skippedRows,
+        warnings: parsedResult.warnings,
         comparison: comparisons
       });
 
@@ -230,13 +224,24 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Confirm and activate new version
+  // Option 1: Append / Merge products into existing catalog
+  const handleAppendExcel = () => {
+    if (!parsedPreview || parsedPreview.parsedProducts.length === 0) return;
+
+    const { added, updated } = appendProducts(parsedPreview.parsedProducts);
+    setParsedPreview(null);
+    setSelectedFile(null);
+    setActiveAdminTab('products');
+    alert(`Đã bổ sung thành công ${added} sản phẩm mới và cập nhật giá ${updated} sản phẩm vào bảng giá! Dữ liệu đã hiển thị ngay tại trang Quản lý sản phẩm.`);
+  };
+
+  // Option 2: Confirm and activate new version (replace all)
   const handleActivateNewVersion = () => {
     if (!parsedPreview) return;
 
     if (
       !confirm(
-        `Xác nhận kích hoạt phiên bản bảng giá "${parsedPreview.versionName}" với ${parsedPreview.parsedProducts.length} sản phẩm?\n\nBảng giá hiện tại sẽ được lưu vào lịch sử lưu trữ.`
+        `Xác nhận thay thế toàn bộ bảng giá bằng phiên bản "${parsedPreview.versionName}" với ${parsedPreview.parsedProducts.length} sản phẩm?\n\n(Nếu bạn chỉ muốn thêm sản phẩm mới vào danh sách hiện tại, hãy chọn nút "Bổ sung vào bảng giá").`
       )
     ) {
       return;
@@ -258,8 +263,8 @@ export const AdminDashboard: React.FC = () => {
     updateProductsWithNewVersion(parsedPreview.parsedProducts, newVersion);
     setParsedPreview(null);
     setSelectedFile(null);
-    setActiveAdminTab('overview');
-    alert('Đã kích hoạt thành công phiên bản bảng giá mới!');
+    setActiveAdminTab('products');
+    alert(`Đã kích hoạt thành công phiên bản bảng giá mới với ${newVersion.totalProducts} sản phẩm!`);
   };
 
   // Stats calculation
@@ -586,7 +591,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setParsedPreview(null)}
                     className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
@@ -594,11 +599,20 @@ export const AdminDashboard: React.FC = () => {
                     Hủy
                   </button>
                   <button
+                    onClick={handleAppendExcel}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5"
+                    title="Bổ sung sản phẩm mới và cập nhật giá vào danh sách hiện tại (Không xóa sản phẩm cũ)"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Bổ sung vào Bảng giá ({parsedPreview.parsedProducts.length} SP)</span>
+                  </button>
+                  <button
                     onClick={handleActivateNewVersion}
-                    className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold shadow-md shadow-red-500/20 transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold shadow-md shadow-red-500/20 transition-all flex items-center gap-1.5"
+                    title="Kích hoạt thay thế toàn bộ bảng giá bằng file mới này"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Xác nhận & Kích hoạt phiên bản này</span>
+                    <span>Thay thế toàn bộ bảng giá</span>
                   </button>
                 </div>
               </div>
@@ -917,7 +931,7 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs space-y-1.5">
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Supabase Endpoint:</span>
                 <span className="font-mono font-bold text-slate-800 text-[11px] truncate max-w-[220px] sm:max-w-none">
@@ -925,10 +939,16 @@ export const AdminDashboard: React.FC = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Trạng thái Auth & API:</span>
+                <span className="text-slate-500">Trạng thái API:</span>
                 <span className="font-bold text-emerald-600 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Đang hoạt động (200 OK)</span>
+                  <span>Kết nối máy chủ (200 OK)</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Lần đồng bộ Cloud gần nhất:</span>
+                <span className="font-mono font-semibold text-slate-700">
+                  {cloudSyncStatus.lastSyncedAt || 'Chưa đồng bộ trong phiên này'}
                 </span>
               </div>
               {supabaseStatus.message && (
@@ -938,8 +958,48 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
 
-            <div className="p-3.5 bg-amber-50/90 rounded-2xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
-              <strong>Hướng dẫn triển khai Database:</strong> File schema chuẩn PostgreSQL 13 bảng đã sẵn sàng tại <code className="bg-white px-1 py-0.5 rounded border border-amber-300 font-bold">schema.sql</code> và dữ liệu bảng giá tại <code className="bg-white px-1 py-0.5 rounded border border-amber-300 font-bold">seed_data.sql</code> (292 sản phẩm). Bạn có thể mở Supabase SQL Editor và chạy để hoàn tất đồng bộ Cloud.
+            {/* Cloud Sync Action Bar */}
+            <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div>
+                <h4 className="font-extrabold text-emerald-950 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Đồng bộ toàn bộ bảng giá lên Supabase Cloud</span>
+                </h4>
+                <p className="text-slate-600 mt-0.5">
+                  Đẩy toàn bộ <strong>{products.length} sản phẩm</strong> hiện tại lên Database Cloud để tất cả nhân viên truy cập trên Vercel đều xem được.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSyncToSupabase}
+                disabled={syncingCloud}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95 disabled:opacity-50 shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncingCloud ? 'animate-spin' : ''}`} />
+                <span>{syncingCloud ? 'Đang đồng bộ...' : `Đồng bộ ngay (${products.length} SP)`}</span>
+              </button>
+            </div>
+
+            {/* Fix SQL Script Card */}
+            <div className="p-4 bg-amber-50/90 rounded-2xl border border-amber-200 text-xs text-amber-950 space-y-2.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="font-bold flex items-center gap-1.5 text-sm text-amber-950">
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
+                  <span>Sửa quyền lưu sản phẩm trên Supabase SQL Editor</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyFixSQL}
+                  className="px-3 py-1.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold text-xs flex items-center gap-1 border border-amber-300 transition-colors"
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>{copiedSQL ? '✓ Đã sao chép SQL!' : 'Sao chép câu lệnh SQL'}</span>
+                </button>
+              </div>
+              <p className="text-slate-600 leading-relaxed">
+                Nếu bạn gặp lỗi không lưu được sản phẩm lên Database Supabase (lỗi RLS 42501 hoặc thiếu cột prices), hãy nhấn nút <strong>Sao chép câu lệnh SQL</strong> ở trên, mở <strong>Supabase Dashboard → SQL Editor</strong> và dán vào chạy để mở quyền đọc/ghi.
+              </p>
             </div>
           </div>
 

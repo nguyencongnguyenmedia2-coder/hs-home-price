@@ -64,14 +64,22 @@ export const ProductCatalog: React.FC = () => {
       }
       return true;
     }).sort((a, b) => {
+      if (filters.sortBy === 'newest') {
+        if (a.created_at && b.created_at) {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+        if (a.created_at) return -1;
+        if (b.created_at) return 1;
+        return 0;
+      }
       if (filters.sortBy === 'name_asc') {
-        return a.product_name.localeCompare(b.product_name);
+        return a.product_name.localeCompare(b.product_name, 'vi');
       }
       if (filters.sortBy === 'name_desc') {
-        return b.product_name.localeCompare(a.product_name);
+        return b.product_name.localeCompare(a.product_name, 'vi');
       }
-      const priceA = a.prices[filters.selectedPriceGroup]?.value || a.prices.gia_khach_le?.value || 0;
-      const priceB = b.prices[filters.selectedPriceGroup]?.value || b.prices.gia_khach_le?.value || 0;
+      const priceA = a.prices?.[filters.selectedPriceGroup]?.value || a.prices?.gia_khach_le?.value || 0;
+      const priceB = b.prices?.[filters.selectedPriceGroup]?.value || b.prices?.gia_khach_le?.value || 0;
       if (filters.sortBy === 'price_asc') {
         return priceA - priceB;
       }
@@ -301,6 +309,7 @@ export const ProductCatalog: React.FC = () => {
               onChange={e => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
               className="px-3 py-1.5 rounded-xl bg-slate-50 border border-[#E5EAF1] text-xs font-semibold text-[#172033] focus:outline-none"
             >
+              <option value="newest">Mới cập nhật / Mới thêm</option>
               <option value="name_asc">Tên: A → Z</option>
               <option value="name_desc">Tên: Z → A</option>
               <option value="price_asc">Giá: Thấp → Cao</option>

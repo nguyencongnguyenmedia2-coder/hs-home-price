@@ -35,10 +35,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const favorited = isFavorite(product.id);
 
   // Determine active price to display based on selected tier
-  const priceDetail = product.prices[selectedPriceKey] ||
-    product.prices.gia_khach_le ||
-    product.prices.gia_khach_si ||
-    product.prices.gia_niem_yet;
+  const priceDetail = product.prices?.[selectedPriceKey] ||
+    product.prices?.gia_khach_le ||
+    product.prices?.gia_khach_si ||
+    product.prices?.gia_niem_yet;
 
   const displayPrice = priceDetail?.value;
 

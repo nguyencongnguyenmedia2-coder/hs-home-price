@@ -43,11 +43,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const favorited = isFavorite(product.id);
 
   // Available price list from Excel
-  const availablePrices = Object.entries(product.prices)
+  const pricesObj = product.prices || {};
+  const availablePrices = Object.entries(pricesObj)
     .filter(([_, detail]) => detail !== null && detail.value > 0)
     .map(([key, detail]) => ({ key, ...detail! }));
 
-  const activePriceDetail = product.prices[selectedPriceKey] || availablePrices[0];
+  const activePriceDetail = pricesObj[selectedPriceKey] || availablePrices[0];
 
   const handleCopyPrice = (label: string, val: number) => {
     navigator.clipboard.writeText(`${label}: ${formatVND(val)}`);

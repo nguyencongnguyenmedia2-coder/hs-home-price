@@ -106,6 +106,9 @@ export const ProductPriceManager: React.FC = () => {
   const [batchScope, setBatchScope] = useState<'selected' | 'category' | 'all'>('selected');
   const [batchTargetPrice, setBatchTargetPrice] = useState<'all' | 'gia_khach_le' | 'gia_niem_yet'>('all');
 
+  // Newly Added Highlight
+  const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null);
+
   // Success Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -113,7 +116,7 @@ export const ProductPriceManager: React.FC = () => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 4000);
   };
 
   // Extract unique categories and brands
@@ -145,16 +148,21 @@ export const ProductPriceManager: React.FC = () => {
       if (sortBy === 'name_asc') return a.product_name.localeCompare(b.product_name, 'vi');
       if (sortBy === 'name_desc') return b.product_name.localeCompare(a.product_name, 'vi');
       if (sortBy === 'price_asc') {
-        const priceA = a.prices.gia_khach_le?.value || a.prices.gia_niem_yet?.value || 0;
-        const priceB = b.prices.gia_khach_le?.value || b.prices.gia_niem_yet?.value || 0;
+        const priceA = a.prices?.gia_khach_le?.value || a.prices?.gia_niem_yet?.value || 0;
+        const priceB = b.prices?.gia_khach_le?.value || b.prices?.gia_niem_yet?.value || 0;
         return priceA - priceB;
       }
       if (sortBy === 'price_desc') {
-        const priceA = a.prices.gia_khach_le?.value || a.prices.gia_niem_yet?.value || 0;
-        const priceB = b.prices.gia_khach_le?.value || b.prices.gia_niem_yet?.value || 0;
+        const priceA = a.prices?.gia_khach_le?.value || a.prices?.gia_niem_yet?.value || 0;
+        const priceB = b.prices?.gia_khach_le?.value || b.prices?.gia_niem_yet?.value || 0;
         return priceB - priceA;
       }
-      // 'newest'
+      // 'newest': Newly created products or products with recent IDs come first
+      if (a.created_at && b.created_at) {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      if (a.created_at) return -1;
+      if (b.created_at) return 1;
       return 0;
     });
 
@@ -312,7 +320,17 @@ export const ProductPriceManager: React.FC = () => {
         sheet_name: formData.category.trim() || 'Thủ công',
         row_number: products.length + 1
       });
-      showToast(`Đã thêm thành công sản phẩm: "${created.product_name}"`);
+
+      // Reset filters so the new product is guaranteed to be visible at page 1 top
+      setSearchTerm('');
+      setSelectedCategory('ALL');
+      setSelectedBrand('ALL');
+      setSortBy('newest');
+      setCurrentPage(1);
+      setNewlyAddedId(created.id);
+      setTimeout(() => setNewlyAddedId(null), 10000);
+
+      showToast(`Đã thêm thành công sản phẩm: "${created.product_name}" (Hiển thị ngay đầu bảng)`);
     }
 
     setIsModalOpen(false);
@@ -610,17 +628,22 @@ export const ProductPriceManager: React.FC = () => {
                 paginatedProducts.map(p => {
                   const isSelected = selectedIds.includes(p.id);
                   const isInlineEditing = inlineEditingId === p.id;
-                  const retailPrice = p.prices.gia_khach_le?.value;
-                  const listPrice = p.prices.gia_niem_yet?.value;
-                  const contractorPrice = p.prices.gia_thau_tho?.value;
-                  const wholesalePrice = p.prices.gia_khach_si?.value;
-                  const samplePrice = p.prices.gia_ban_mau?.value;
+                  const isNewlyAdded = newlyAddedId === p.id;
+                  const retailPrice = p.prices?.gia_khach_le?.value;
+                  const listPrice = p.prices?.gia_niem_yet?.value;
+                  const contractorPrice = p.prices?.gia_thau_tho?.value;
+                  const wholesalePrice = p.prices?.gia_khach_si?.value;
+                  const samplePrice = p.prices?.gia_ban_mau?.value;
 
                   return (
                     <tr
                       key={p.id}
-                      className={`hover:bg-slate-50/80 transition-colors ${
-                        isSelected ? 'bg-red-50/30' : ''
+                      className={`transition-colors ${
+                        isNewlyAdded
+                          ? 'bg-emerald-50/80 border-l-4 border-l-emerald-500'
+                          : isSelected
+                          ? 'bg-red-50/30'
+                          : 'hover:bg-slate-50/80'
                       }`}
                     >
                       {/* Checkbox */}
@@ -639,8 +662,15 @@ export const ProductPriceManager: React.FC = () => {
 
                       {/* Product Name, SKU, Category */}
                       <td className="p-3">
-                        <div className="font-bold text-slate-900 line-clamp-2" title={p.product_name}>
-                          {p.product_name}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900 line-clamp-2" title={p.product_name}>
+                            {p.product_name}
+                          </span>
+                          {isNewlyAdded && (
+                            <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300 animate-pulse">
+                              ★ Vừa thêm
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">

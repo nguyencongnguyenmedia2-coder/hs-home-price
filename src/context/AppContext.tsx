@@ -23,6 +23,9 @@ interface AppContextType {
   currentVersion: PriceVersion;
   versionHistory: PriceVersion[];
   updateProductsWithNewVersion: (newProducts: Product[], version: PriceVersion) => void;
+  appendProducts: (newProducts: Product[]) => { added: number; updated: number };
+  syncAllProductsToCloud: () => Promise<{ success: boolean; count: number; error?: string }>;
+  cloudSyncStatus: { isSyncing: boolean; lastSyncedAt: string | null; error: string | null };
   addProduct: (product: Omit<Product, 'id'> & { id?: string }) => Product;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -290,38 +293,103 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     ];
   });
 
-  // Save changes to localStorage
+  // Cloud sync status
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<{
+    isSyncing: boolean;
+    lastSyncedAt: string | null;
+    error: string | null;
+  }>({
+    isSyncing: false,
+    lastSyncedAt: null,
+    error: null
+  });
+
+  // Safe localStorage helper
+  const safeSetItem = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn(`Không thể lưu vào localStorage [${key}]:`, e);
+    }
+  };
+
+  // Save changes to localStorage with error handling
   useEffect(() => {
-    localStorage.setItem('hs_current_user', JSON.stringify(currentUser));
+    safeSetItem('hs_current_user', JSON.stringify(currentUser));
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('hs_products', JSON.stringify(products));
+    safeSetItem('hs_products', JSON.stringify(products));
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('hs_current_version', JSON.stringify(currentVersion));
+    safeSetItem('hs_current_version', JSON.stringify(currentVersion));
   }, [currentVersion]);
 
   useEffect(() => {
-    localStorage.setItem('hs_version_history', JSON.stringify(versionHistory));
+    safeSetItem('hs_version_history', JSON.stringify(versionHistory));
   }, [versionHistory]);
 
   useEffect(() => {
-    localStorage.setItem('hs_recent_products', JSON.stringify(recentProductIds));
+    safeSetItem('hs_recent_products', JSON.stringify(recentProductIds));
   }, [recentProductIds]);
 
   useEffect(() => {
-    localStorage.setItem('hs_favorites', JSON.stringify(favoriteIds));
+    safeSetItem('hs_favorites', JSON.stringify(favoriteIds));
   }, [favoriteIds]);
 
   useEffect(() => {
-    localStorage.setItem('hs_quotation_cart', JSON.stringify(quotationItems));
+    safeSetItem('hs_quotation_cart', JSON.stringify(quotationItems));
   }, [quotationItems]);
 
   useEffect(() => {
-    localStorage.setItem('hs_saved_quotations', JSON.stringify(savedQuotations));
+    safeSetItem('hs_saved_quotations', JSON.stringify(savedQuotations));
   }, [savedQuotations]);
+
+  // Load products from Supabase Cloud on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFromCloud = async () => {
+      try {
+        const { data, error } = await supabase.from('products').select('*');
+        if (!isMounted) return;
+        if (!error && data && data.length > 0) {
+          const cloudProducts: Product[] = data.map((row: any) => ({
+            id: row.id,
+            source_file: row.source_file || 'Supabase Cloud',
+            sheet_name: row.sheet_name || row.category || 'Chung',
+            row_number: row.row_number || 1,
+            category: row.category || 'Chung',
+            group_name: row.group_name || row.category || 'Chung',
+            product_name: row.product_name,
+            sku: row.sku || '',
+            brand: row.brand || 'Hoa Sen Home',
+            specs: row.specs || '',
+            unit: row.unit || 'Cái',
+            packaging: row.packaging || '',
+            notes: row.notes || '',
+            prices: typeof row.prices === 'object' && row.prices !== null ? row.prices : {},
+            created_at: row.created_at,
+            updated_at: row.updated_at
+          }));
+          setProducts(cloudProducts);
+          safeSetItem('hs_products', JSON.stringify(cloudProducts));
+          setCloudSyncStatus({
+            isSyncing: false,
+            lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
+            error: null
+          });
+        } else if (error) {
+          console.warn('Supabase Cloud info:', error.message);
+          setCloudSyncStatus(prev => ({ ...prev, error: error.message }));
+        }
+      } catch (err: any) {
+        console.warn('Không thể kết nối Supabase Cloud khi nạp sản phẩm:', err);
+      }
+    };
+    fetchFromCloud();
+    return () => { isMounted = false; };
+  }, []);
 
   // Listen to Supabase Auth state changes
   useEffect(() => {
@@ -538,6 +606,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addAuditLog('Cập nhật trạng thái báo giá', `Báo giá ${id} chuyển sang: ${status}`);
   };
 
+  // Batch upsert to Supabase helper
+  const batchUpsertToSupabase = async (prods: Product[]) => {
+    try {
+      const CHUNK_SIZE = 50;
+      for (let i = 0; i < prods.length; i += CHUNK_SIZE) {
+        const chunk = prods.slice(i, i + CHUNK_SIZE).map(p => ({
+          id: p.id,
+          sku: p.sku,
+          product_name: p.product_name,
+          category: p.category,
+          brand: p.brand,
+          group_name: p.group_name,
+          specs: p.specs,
+          unit: p.unit,
+          packaging: p.packaging,
+          notes: p.notes,
+          prices: p.prices,
+          sheet_name: p.sheet_name,
+          row_number: p.row_number,
+          source_file: p.source_file,
+          updated_at: new Date().toISOString()
+        }));
+        await supabase.from('products').upsert(chunk);
+      }
+    } catch (err) {
+      console.warn('Lỗi đồng bộ hàng loạt lên Supabase:', err);
+    }
+  };
+
   const addProduct = (productData: Omit<Product, 'id'> & { id?: string }): Product => {
     const id = productData.id || `PROD-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
     const newProduct: Product = {
@@ -558,7 +655,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prices: productData.prices || {}
     };
 
-    setProducts(prev => [newProduct, ...prev]);
+    setProducts(prev => {
+      const updated = [newProduct, ...prev];
+      safeSetItem('hs_products', JSON.stringify(updated));
+      return updated;
+    });
+
     setCurrentVersion(prev => ({
       ...prev,
       totalProducts: prev.totalProducts + 1
@@ -569,31 +671,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Thêm sản phẩm: ${newProduct.product_name} (Mã: ${newProduct.sku})`
     );
 
-    try {
-      supabase.from('products').upsert({
-        id: newProduct.id,
-        sku: newProduct.sku,
-        product_name: newProduct.product_name,
-        category: newProduct.category,
-        brand: newProduct.brand,
-        specs: newProduct.specs,
-        unit: newProduct.unit,
-        packaging: newProduct.packaging,
-        notes: newProduct.notes,
-        prices: newProduct.prices,
-        sheet_name: newProduct.sheet_name,
-        row_number: newProduct.row_number,
-        source_file: newProduct.source_file
-      }).then();
-    } catch {
-      // offline / table not created
-    }
+    // Save to Supabase Cloud
+    (async () => {
+      try {
+        const { error } = await supabase.from('products').upsert({
+          id: newProduct.id,
+          sku: newProduct.sku,
+          product_name: newProduct.product_name,
+          category: newProduct.category,
+          brand: newProduct.brand,
+          group_name: newProduct.group_name,
+          specs: newProduct.specs,
+          unit: newProduct.unit,
+          packaging: newProduct.packaging,
+          notes: newProduct.notes,
+          prices: newProduct.prices,
+          sheet_name: newProduct.sheet_name,
+          row_number: newProduct.row_number,
+          source_file: newProduct.source_file,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        if (error) {
+          console.warn('Lỗi Supabase khi thêm sản phẩm:', error.message);
+        } else {
+          setCloudSyncStatus(prev => ({ ...prev, lastSyncedAt: new Date().toLocaleTimeString('vi-VN'), error: null }));
+        }
+      } catch (err) {
+        console.warn('Không thể kết nối Supabase Cloud:', err);
+      }
+    })();
 
     return newProduct;
   };
 
   const updateProduct = (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    setProducts(prev => {
+      const updated = prev.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+      safeSetItem('hs_products', JSON.stringify(updated));
+      return updated;
+    });
 
     if (selectedProduct?.id === updatedProduct.id) {
       setSelectedProduct(updatedProduct);
@@ -604,31 +721,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Cập nhật: ${updatedProduct.product_name} (Mã: ${updatedProduct.sku})`
     );
 
-    try {
-      supabase.from('products').upsert({
-        id: updatedProduct.id,
-        sku: updatedProduct.sku,
-        product_name: updatedProduct.product_name,
-        category: updatedProduct.category,
-        brand: updatedProduct.brand,
-        specs: updatedProduct.specs,
-        unit: updatedProduct.unit,
-        packaging: updatedProduct.packaging,
-        notes: updatedProduct.notes,
-        prices: updatedProduct.prices,
-        sheet_name: updatedProduct.sheet_name,
-        row_number: updatedProduct.row_number,
-        source_file: updatedProduct.source_file,
-        updated_at: new Date().toISOString()
-      }).then();
-    } catch {
-      // offline
-    }
+    // Update to Supabase Cloud
+    (async () => {
+      try {
+        const { error } = await supabase.from('products').upsert({
+          id: updatedProduct.id,
+          sku: updatedProduct.sku,
+          product_name: updatedProduct.product_name,
+          category: updatedProduct.category,
+          brand: updatedProduct.brand,
+          group_name: updatedProduct.group_name,
+          specs: updatedProduct.specs,
+          unit: updatedProduct.unit,
+          packaging: updatedProduct.packaging,
+          notes: updatedProduct.notes,
+          prices: updatedProduct.prices,
+          sheet_name: updatedProduct.sheet_name,
+          row_number: updatedProduct.row_number,
+          source_file: updatedProduct.source_file,
+          updated_at: new Date().toISOString()
+        });
+        if (error) {
+          console.warn('Lỗi Supabase khi cập nhật:', error.message);
+        } else {
+          setCloudSyncStatus(prev => ({ ...prev, lastSyncedAt: new Date().toLocaleTimeString('vi-VN'), error: null }));
+        }
+      } catch (err) {
+        console.warn('Không thể kết nối Supabase:', err);
+      }
+    })();
   };
 
   const deleteProduct = (productId: string) => {
     const target = products.find(p => p.id === productId);
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    setProducts(prev => {
+      const updated = prev.filter(p => p.id !== productId);
+      safeSetItem('hs_products', JSON.stringify(updated));
+      return updated;
+    });
+
     setCurrentVersion(prev => ({
       ...prev,
       totalProducts: Math.max(0, prev.totalProducts - 1)
@@ -645,11 +776,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Đã xóa: ${target?.product_name || productId} (Mã: ${target?.sku || ''})`
     );
 
-    try {
-      supabase.from('products').delete().eq('id', productId).then();
-    } catch {
-      // offline
-    }
+    // Delete from Supabase Cloud
+    (async () => {
+      try {
+        await supabase.from('products').delete().eq('id', productId);
+      } catch (err) {
+        console.warn('Lỗi Supabase khi xóa:', err);
+      }
+    })();
   };
 
   const batchUpdatePrices = (productIds: string[], percentageChange: number, targetPriceKeys?: string[]) => {
@@ -657,8 +791,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const defaultKeys = ['gia_niem_yet', 'gia_khach_le', 'gia_thau_tho', 'gia_khach_si', 'gia_ban_mau'];
     const keysToUpdate = targetPriceKeys && targetPriceKeys.length > 0 ? targetPriceKeys : defaultKeys;
 
-    setProducts(prev =>
-      prev.map(p => {
+    const modifiedList: Product[] = [];
+
+    setProducts(prev => {
+      const updated = prev.map(p => {
         if (!productIds.includes(p.id)) return p;
         const newPrices = { ...p.prices };
         keysToUpdate.forEach(k => {
@@ -670,24 +806,137 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
           }
         });
-        return {
+        const modProd = {
           ...p,
           prices: newPrices
         };
-      })
-    );
+        modifiedList.push(modProd);
+        return modProd;
+      });
+      safeSetItem('hs_products', JSON.stringify(updated));
+      return updated;
+    });
 
     addAuditLog(
       'Điều chỉnh giá hàng loạt',
       `Điều chỉnh ${percentageChange > 0 ? '+' : ''}${percentageChange}% cho ${productIds.length} sản phẩm`
     );
+
+    // Sync modified to Supabase
+    if (modifiedList.length > 0) {
+      batchUpsertToSupabase(modifiedList);
+    }
   };
 
+  // Append & merge new products from Excel into existing catalog
+  const appendProducts = (newProds: Product[]): { added: number; updated: number } => {
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    const prodMap = new Map<string, Product>();
+    const skuMap = new Map<string, string>();
+    const nameMap = new Map<string, string>();
+
+    products.forEach(p => {
+      prodMap.set(p.id, p);
+      if (p.sku) skuMap.set(p.sku.toLowerCase().trim(), p.id);
+      nameMap.set(p.product_name.toLowerCase().trim(), p.id);
+    });
+
+    newProds.forEach(np => {
+      const normSku = (np.sku || '').toLowerCase().trim();
+      const normName = np.product_name.toLowerCase().trim();
+
+      const matchId = (normSku && skuMap.get(normSku)) || nameMap.get(normName);
+      if (matchId && prodMap.has(matchId)) {
+        const old = prodMap.get(matchId)!;
+        const merged: Product = {
+          ...old,
+          ...np,
+          id: old.id,
+          prices: { ...old.prices, ...np.prices },
+          updated_at: new Date().toISOString()
+        };
+        prodMap.set(matchId, merged);
+        updatedCount++;
+      } else {
+        prodMap.set(np.id, np);
+        addedCount++;
+      }
+    });
+
+    const updatedList = Array.from(prodMap.values());
+    setProducts(updatedList);
+    safeSetItem('hs_products', JSON.stringify(updatedList));
+
+    setCurrentVersion(prev => ({
+      ...prev,
+      totalProducts: updatedList.length
+    }));
+
+    addAuditLog(
+      'Bổ sung sản phẩm từ Excel',
+      `Thêm mới ${addedCount} sản phẩm, cập nhật giá ${updatedCount} sản phẩm vào bảng giá hiện hành`
+    );
+
+    // Sync to Supabase
+    batchUpsertToSupabase(newProds);
+
+    return { added: addedCount, updated: updatedCount };
+  };
+
+  // Replace all products with a newly activated price version
   const updateProductsWithNewVersion = (newProducts: Product[], version: PriceVersion) => {
     setProducts(newProducts);
+    safeSetItem('hs_products', JSON.stringify(newProducts));
     setCurrentVersion(version);
     setVersionHistory(prev => [version, ...prev]);
     addAuditLog('Kích hoạt phiên bản bảng giá mới', `Kích hoạt ${version.name} với ${newProducts.length} sản phẩm`);
+
+    // Sync full list to Supabase
+    batchUpsertToSupabase(newProducts);
+  };
+
+  // Sync entire current catalog to Supabase Cloud
+  const syncAllProductsToCloud = async (): Promise<{ success: boolean; count: number; error?: string }> => {
+    setCloudSyncStatus(prev => ({ ...prev, isSyncing: true }));
+    try {
+      const CHUNK_SIZE = 50;
+      for (let i = 0; i < products.length; i += CHUNK_SIZE) {
+        const chunk = products.slice(i, i + CHUNK_SIZE).map(p => ({
+          id: p.id,
+          sku: p.sku,
+          product_name: p.product_name,
+          category: p.category,
+          brand: p.brand,
+          group_name: p.group_name,
+          specs: p.specs,
+          unit: p.unit,
+          packaging: p.packaging,
+          notes: p.notes,
+          prices: p.prices,
+          sheet_name: p.sheet_name,
+          row_number: p.row_number,
+          source_file: p.source_file,
+          updated_at: new Date().toISOString()
+        }));
+        const { error } = await supabase.from('products').upsert(chunk);
+        if (error) {
+          throw new Error(error.message);
+        }
+      }
+      setCloudSyncStatus({
+        isSyncing: false,
+        lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
+        error: null
+      });
+      addAuditLog('Đồng bộ Cloud Supabase', `Đã đồng bộ thành công ${products.length} sản phẩm lên Database Supabase`);
+      return { success: true, count: products.length };
+    } catch (err: any) {
+      const msg = err.message || 'Lỗi kết nối khi lưu lên Supabase';
+      setCloudSyncStatus(prev => ({ ...prev, isSyncing: false, error: msg }));
+      return { success: false, count: 0, error: msg };
+    }
   };
 
   return (
@@ -706,6 +955,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentVersion,
         versionHistory,
         updateProductsWithNewVersion,
+        appendProducts,
+        syncAllProductsToCloud,
+        cloudSyncStatus,
         addProduct,
         updateProduct,
         deleteProduct,
